@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dark Nova Squad — Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #18181f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8e8f0;
+  --muted: #6b6b80;
+  --accent: #c8ff57;
+  --accent2: #57c8ff;
+  --danger: #ff5757;
+  --warn: #ffb657;
+  --purple: #a857ff;
+  --teal: #57ffca;
+  --pink: #ff57b6;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* scanline overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* HEADER */
+.header {
+  border-bottom: 1px solid var(--border2);
+  padding: 1.25rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(12px);
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: .1em; color: var(--accent); }
+.logo span { color: var(--muted); }
+.nav { display: flex; gap: 4px; }
+.nav-btn {
+  background: none; border: 1px solid transparent; color: var(--muted);
+  font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .08em;
+  padding: .45rem .9rem; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+  transition: all .15s;
+}
+.nav-btn:hover { color: var(--text); border-color: var(--border2); }
+.nav-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(200,255,87,0.06); }
+
+/* TABS */
+.tab { display: none; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+.tab.active { display: block; }
+
+/* SECTION TITLES */
+.section-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+  letter-spacing: .12em; margin-bottom: .25rem;
+}
+.section-sub { color: var(--muted); font-size: .8rem; font-family: 'DM Mono', monospace; margin-bottom: 1.75rem; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .6rem 1.4rem; border-radius: 4px; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: .75rem; letter-spacing: .07em;
+  text-transform: uppercase; border: none; transition: all .15s; font-weight: 500;
+}
+.btn-accent { background: var(--accent); color: #0a0a0f; }
+.btn-accent:hover { background: #d9ff70; transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: rgba(255,87,87,0.12); border: 1px solid rgba(255,87,87,0.3); color: var(--danger); }
+.btn-danger:hover { background: rgba(255,87,87,0.2); }
+.btn-purple { background: rgba(168,87,255,0.12); border: 1px solid rgba(168,87,255,0.3); color: var(--purple); }
+.btn-purple:hover { background: rgba(168,87,255,0.2); }
+.btn:disabled { opacity: .35; cursor: not-allowed; transform: none !important; }
+
+/* CHAR SELECT */
+.char-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 1.5rem;
+}
+.char-chip {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: .6rem .8rem; cursor: pointer;
+  transition: all .12s; user-select: none;
+}
+.char-chip:hover { border-color: var(--border2); background: var(--surface2); }
+.char-chip.selected-1 { border-color: var(--danger); background: rgba(255,87,87,0.08); }
+.char-chip.selected-2 { border-color: var(--accent2); background: rgba(87,200,255,0.08); }
+.char-chip-name { font-size: .78rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.char-chip-sub { font-size: .65rem; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+/* BATTLE */
+.battle-setup { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: start; margin-bottom: 1.5rem; }
+.fighter-slot {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem;
+  min-height: 180px;
+}
+.fighter-slot.slot-1 { border-color: rgba(255,87,87,0.2); }
+.fighter-slot.slot-2 { border-color: rgba(87,200,255,0.2); }
+.vs-badge {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--muted);
+  display: flex; align-items: center; justify-content: center; padding-top: 3rem;
+}
+.fighter-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; margin-bottom: .25rem; }
+.fighter-role-badge {
+  display: inline-block; font-family: 'DM Mono', monospace; font-size: .65rem;
+  padding: 2px 8px; border-radius: 20px; margin-bottom: .75rem;
+}
+.stat-list { display: flex; flex-direction: column; gap: 6px; }
+.stat-line { display: flex; justify-content: space-between; align-items: center; font-size: .78rem; }
+.stat-line-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .68rem; }
+.stat-bar-wrap { flex: 1; margin: 0 8px; height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+.stat-bar-fill { height: 100%; border-radius: 2px; }
+.stat-line-val { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--text); min-width: 28px; text-align: right; }
+
+/* BATTLE LOG */
+.battle-log {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.25rem; font-family: 'DM Mono', monospace; font-size: .75rem;
+  line-height: 1.85; max-height: 520px; overflow-y: auto; position: relative;
+}
+.battle-log:empty::before { content: 'Select two fighters and press START BATTLE'; color: var(--muted); }
+.log-turn { color: var(--muted); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; margin: .75rem 0 .2rem; }
+.log-hit { color: var(--danger); }
+.log-p2hit { color: var(--accent2); }
+.log-cond { color: var(--warn); }
+.log-heal { color: var(--teal); }
+.log-sys { color: var(--muted); font-style: italic; }
+.log-win { color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: .1em; }
+.log-special { color: var(--purple); }
+
+/* HP BARS */
+.hp-bars { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; margin-bottom: 1.25rem; }
+.hp-bar-wrap { }
+.hp-bar-name { font-size: .72rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.hp-bar-track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+.hp-bar-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+.hp-bar-fill.p1 { background: var(--danger); }
+.hp-bar-fill.p2 { background: var(--accent2); }
+.hp-label { font-family: 'Bebas Neue', sans-serif; font-size: .9rem; color: var(--muted); text-align: center; }
+
+/* CONDITION BADGES */
+.cond-badge {
+  display: inline-block; font-family: 'DM Mono', monospace; font-size: .62rem;
+  padding: 1px 6px; border-radius: 3px; margin: 2px 2px 0 0;
+  background: rgba(255,182,87,0.12); color: var(--warn); border: 1px solid rgba(255,182,87,0.2);
+}
+
+/* GACHA */
+.gacha-pool-label { font-size: .72rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: .75rem; }
+.gacha-controls { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.gacha-controls label { font-size: .75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+.gacha-controls select, .gacha-controls input[type=range] {
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+  border-radius: 4px; padding: .35rem .6rem; font-family: 'DM Mono', monospace; font-size: .72rem;
+}
+.gacha-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.team-panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem;
+}
+.team-panel-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: .1em; margin-bottom: .75rem;
+  padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+}
+.team-card {
+  display: flex; align-items: center; gap: .7rem; padding: .55rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.team-card:last-child { border-bottom: none; }
+.team-avatar {
+  width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: .85rem; flex-shrink: 0;
+}
+.team-card-name { font-size: .8rem; font-weight: 500; }
+.team-card-sub { font-size: .65rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+.team-stats { margin-left: auto; text-align: right; }
+.team-stat-total { font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--accent); }
+.synergy-tag {
+  display: inline-block; font-family: 'DM Mono', monospace; font-size: .62rem;
+  padding: 1px 6px; border-radius: 3px; margin: 2px 2px 0 0;
+  background: rgba(200,255,87,0.08); color: var(--accent); border: 1px solid rgba(200,255,87,0.15);
+}
+.team-summary {
+  margin-top: .8rem; padding-top: .7rem; border-top: 1px solid var(--border);
+  font-size: .7rem; color: var(--muted); font-family: 'DM Mono', monospace;
+  display: flex; flex-wrap: wrap; gap: .35rem;
+}
+
+/* SCENE GEN */
+.scene-controls { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem; }
+.scene-controls select {
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+  border-radius: 4px; padding: .4rem .7rem; font-family: 'DM Mono', monospace; font-size: .72rem;
+}
+.scene-chars { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.25rem; }
+.scene-char-chip {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: .3rem .8rem; cursor: pointer;
+  font-size: .72rem; font-family: 'DM Mono', monospace;
+  transition: all .12s; user-select: none;
+}
+.scene-char-chip.active { border-color: var(--purple); color: var(--purple); background: rgba(168,87,255,0.08); }
+.scene-output {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.5rem; min-height: 200px; line-height: 1.9; font-size: .85rem;
+  white-space: pre-wrap; position: relative;
+}
+.scene-output .scene-header {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: .1em;
+  color: var(--purple); margin-bottom: .75rem; display: block;
+}
+.scene-output .char-highlight { color: var(--accent); font-weight: 500; }
+.scene-output .char-highlight-2 { color: var(--accent2); font-weight: 500; }
+.scene-output .action-text { color: var(--pink); font-style: italic; }
+.scene-output .sys-text { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .72rem; }
+.thinking { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .72rem; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+.role-color-attacker { color: #ff5757; }
+.role-color-tank { color: #57c8ff; }
+.role-color-support { color: #57ffca; }
+.role-color-disruptor { color: #ffb657; }
+.role-bg-attacker { background: rgba(255,87,87,0.1); border-color: rgba(255,87,87,0.25); }
+.role-bg-tank { background: rgba(87,200,255,0.1); border-color: rgba(87,200,255,0.25); }
+.role-bg-support { background: rgba(87,255,202,0.1); border-color: rgba(87,255,202,0.25); }
+.role-bg-disruptor { background: rgba(255,182,87,0.1); border-color: rgba(255,182,87,0.25); }
+
+/* EMPTY SLOT */
+.empty-slot { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .72rem; text-align: center; padding: 2rem 1rem; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* FLASH */
+@keyframes flashRed { 0%,100%{background:transparent} 50%{background:rgba(255,87,87,0.15)} }
+@keyframes flashBlue { 0%,100%{background:transparent} 50%{background:rgba(87,200,255,0.15)} }
+.flash-red { animation: flashRed .3s; }
+.flash-blue { animation: flashBlue .3s; }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+.tag { display: inline-block; font-family: 'DM Mono', monospace; font-size: .62rem; padding: 1px 7px; border-radius: 20px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">Dark Nova <span>Squad</span></div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('battle')">⚔ Battle</button>
+    <button class="nav-btn" onclick="switchTab('gacha')">🎲 Draft</button>
+    <button class="nav-btn" onclick="switchTab('scene')">✦ Scene</button>
+  </nav>
+</header>
+
+<!-- ═══════════════════ BATTLE TAB ═══════════════════ -->
+<div class="tab active" id="tab-battle">
+  <div class="section-title">Battle Simulator</div>
+  <div class="section-sub">// select one fighter per side — full turn-by-turn with conditions</div>
+
+  <div style="display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap">
+    <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:.4rem">
+      <span style="width:10px;height:10px;background:rgba(255,87,87,0.5);border-radius:2px;display:inline-block"></span> Fighter 1
+    </div>
+    <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:.4rem">
+      <span style="width:10px;height:10px;background:rgba(87,200,255,0.5);border-radius:2px;display:inline-block"></span> Fighter 2
+    </div>
+    <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;margin-left:auto">click a fighter to assign — click again to deselect</div>
+  </div>
+
+  <div class="char-grid" id="battle-char-grid"></div>
+
+  <div class="battle-setup" id="battle-setup">
+    <div class="fighter-slot slot-1" id="slot-1">
+      <div class="empty-slot">← select fighter 1</div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="fighter-slot slot-2" id="slot-2">
+      <div class="empty-slot">select fighter 2 →</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;align-items:center">
+    <button class="btn btn-accent" id="start-battle-btn" onclick="startBattle()" disabled>⚔ Start Battle</button>
+    <button class="btn btn-ghost" onclick="resetBattle()">Reset</button>
+    <div id="battle-status" style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted)"></div>
+  </div>
+
+  <div class="hp-bars" id="hp-bars" style="display:none">
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-name"><span id="p1name-bar">—</span><span id="p1hp-label">— / —</span></div>
+      <div class="hp-bar-track"><div class="hp-bar-fill p1" id="p1bar" style="width:100%"></div></div>
+    </div>
+    <div class="hp-label">HP</div>
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-name"><span id="p2name-bar">—</span><span id="p2hp-label">— / —</span></div>
+      <div class="hp-bar-track"><div class="hp-bar-fill p2" id="p2bar" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <div class="battle-log" id="battle-log"></div>
+</div>
+
+<!-- ═══════════════════ GACHA / DRAFT TAB ═══════════════════ -->
+<div class="tab" id="tab-gacha">
+  <div class="section-title">Squad Draft</div>
+  <div class="section-sub">// randomize two full teams — evaluate synergies & predict the matchup</div>
+
+  <div class="gacha-controls">
+    <label>Team size</label>
+    <select id="team-size">
+      <option value="3">3v3</option>
+      <option value="4">4v4</option>
+      <option value="5" selected>5v5</option>
+    </select>
+    <label>Pool</label>
+    <select id="draft-pool">
+      <option value="all">All 40 characters</option>
+      <option value="troupe">By troupe</option>
+      <option value="cross">Cross-troupe groups only</option>
+    </select>
+    <button class="btn btn-accent" onclick="rollDraft()">🎲 Roll Draft</button>
+    <button class="btn btn-purple" id="analyze-btn" onclick="analyzeDraft()" disabled>✦ AI Analysis</button>
+  </div>
+
+  <div class="gacha-teams" id="gacha-teams">
+    <div class="team-panel"><div class="empty-slot">press Roll Draft to generate teams</div></div>
+    <div class="team-panel"><div class="empty-slot">press Roll Draft to generate teams</div></div>
+  </div>
+
+  <div id="draft-analysis" style="margin-top:1.25rem"></div>
+</div>
+
+<!-- ═══════════════════ SCENE TAB ═══════════════════ -->
+<div class="tab" id="tab-scene">
+  <div class="section-title">Scene Generator</div>
+  <div class="section-sub">// pick characters + vibe — AI writes the scene</div>
+
+  <div class="scene-controls">
+    <select id="scene-vibe">
+      <option value="random">🎲 Random vibe</option>
+      <option value="slice">Casual slice-of-life</option>
+      <option value="rivalry">Heated rivalry / drama</option>
+      <option value="battle-banter">Mid-battle banter</option>
+      <option value="mission-brief">Pre-mission briefing</option>
+      <option value="aftermath">Post-fight aftermath</option>
+      <option value="downtime">Off-duty chaos</option>
+    </select>
+    <button class="btn btn-ghost" onclick="randomSceneChars()">🎲 Random cast</button>
+    <button class="btn btn-ghost" onclick="clearSceneChars()">Clear</button>
+    <div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)" id="scene-count">0 selected (pick 2–5)</div>
+  </div>
+
+  <div class="scene-chars" id="scene-chars"></div>
+
+  <div style="display:flex;gap:.75rem;margin-bottom:1.25rem">
+    <button class="btn btn-accent" id="gen-scene-btn" onclick="generateScene()" disabled>✦ Generate Scene</button>
+  </div>
+
+  <div class="scene-output" id="scene-output"><span class="sys-text">Select 2–5 characters and press Generate Scene.</span></div>
+</div>
+
+<script>
+const CHARS = [
+  {name:"Addison Hart",pronouns:"she/her",troupe:8,group:"Velvet Chainsaw",element:"Shadow",aspect:"Calm",mbti:"INFP",family:"Diplomat",role:"Support",power:38,control:78,support:65,speed:45,defense:111,hp:123,endurance:69,technique:60,resilience:94,total:683,playstyle:"Battle Medic",inflict:["Drain","Haze","Blind"],resist:["Blind","Corrode"],immune:"Drain",threat:"C",personality:"Imaginative, serene, avoidant, secretive"},
+  {name:"Akane Kazumi",pronouns:"they/them",troupe:4,group:"Atomic Lullaby",element:"Fire",aspect:"Storm",mbti:"ENTP",family:"Analyst",role:"Attacker",power:125,control:22,support:15,speed:132,defense:75,hp:83,endurance:7,technique:54,resilience:47,total:560,playstyle:"Blitz",inflict:["Burn","Corrode","Blind"],resist:["Chill","Freeze"],immune:"Burn",threat:"B",personality:"Spontaneous, charismatic, volatile, thrill-seeking"},
+  {name:"Akari Fujisaki",pronouns:"she/her",troupe:5,group:"Velvet Chainsaw",element:"Light",aspect:"Soul",mbti:"INFP",family:"Diplomat",role:"Support",power:40,control:60,support:123,speed:38,defense:109,hp:123,endurance:78,technique:48,resilience:93,total:712,playstyle:"Full Support",inflict:["Blind","Drain","Haze"],resist:["Haze","Corrode"],immune:"Blind",threat:"B",personality:"Empathetic, idealistic, anxious, overthinking"},
+  {name:"Akina Masayuki",pronouns:"she/her",troupe:6,group:"Ghost Fountain",element:"Water",aspect:"Silent",mbti:"ISFP",family:"Explorer",role:"Disruptor",power:45,control:80,support:38,speed:70,defense:99,hp:105,endurance:54,technique:70,resilience:89,total:650,playstyle:"Harasser",inflict:["Soak","Corrode","Chill"],resist:["Burn","Blind"],immune:"Soak",threat:"B",personality:"Affable, witty, vain, oblivious"},
+  {name:"Ana Crosby",pronouns:"she/her",troupe:5,group:"Rust Parade",element:"Fire",aspect:"Decay",mbti:"ENFJ",family:"Diplomat",role:"Attacker",power:68,control:72,support:25,speed:55,defense:84,hp:85,endurance:43,technique:59,resilience:70,total:561,playstyle:"Skirmisher",inflict:["Burn","Corrode","Drain"],resist:["Chill","Soak"],immune:"Burn",threat:"C",personality:"Altruistic, devoted, manipulative, martyr complex"},
+  {name:"Asuka Yoshida",pronouns:"she/her",troupe:7,group:"Static Crown",element:"Light",aspect:"Forge",mbti:"ISTJ",family:"Sentinel",role:"Attacker",power:90,control:101,support:20,speed:60,defense:87,hp:86,endurance:56,technique:80,resilience:81,total:661,playstyle:"Brawler",inflict:["Blind","Corrode","Burn"],resist:["Haze","Freeze"],immune:"Blind",threat:"B",personality:"Conscientious, meticulous, judgmental, rigid"},
+  {name:"Charlotte Ellis",pronouns:"she/her",troupe:7,group:"Rust Parade",element:"Fire",aspect:"Echo",mbti:"INTP",family:"Analyst",role:"Attacker",power:78,control:65,support:18,speed:68,defense:84,hp:85,endurance:36,technique:59,resilience:67,total:560,playstyle:"Skirmisher",inflict:["Burn","Blind","Haze"],resist:["Chill","Freeze"],immune:"Burn",threat:"B",personality:"Ingenious, analytical, cynical, arrogant"},
+  {name:"Chiyo Funai",pronouns:"she/her",troupe:3,group:"Glitch Garden",element:"Metal",aspect:"Forge",mbti:"ISTJ",family:"Sentinel",role:"Tank",power:75,control:80,support:40,speed:45,defense:126,hp:158,endurance:68,technique:59,resilience:105,total:756,playstyle:"Fortress",inflict:["Fracture","Corrode","Anchor"],resist:["Freeze","Root"],immune:"Fracture",threat:"A",personality:"Reliable, thorough, self-sacrificing, passive"},
+  {name:"Cindy Bentley",pronouns:"she/her",troupe:8,group:"Neon Graveyard",element:"Fire",aspect:"Bloom",mbti:"ESFJ",family:"Sentinel",role:"Attacker",power:72,control:42,support:35,speed:65,defense:81,hp:84,endurance:30,technique:44,resilience:59,total:512,playstyle:"Skirmisher",inflict:["Burn","Blind","Soak"],resist:["Chill","Drain"],immune:"Burn",threat:"C",personality:"Expressive, passionate, envious, eccentric"},
+  {name:"Claudia Bailey",pronouns:"she/her",troupe:6,group:"Ghost Fountain",element:"Nature",aspect:"Calm",mbti:"ISFJ",family:"Sentinel",role:"Support",power:35,control:75,support:117,speed:42,defense:111,hp:123,endurance:83,technique:57,resilience:98,total:741,playstyle:"Full Support",inflict:["Wither","Bloom","Root"],resist:["Drain","Corrode"],immune:"Wither",threat:"A",personality:"Harmonizing, diplomatic, conflict-avoidant, self-forgetting"},
+  {name:"Emily Caddel",pronouns:"she/her",troupe:6,group:"Atomic Lullaby",element:"Light",aspect:"Storm",mbti:"ENFP",family:"Diplomat",role:"Attacker",power:80,control:38,support:22,speed:98,defense:79,hp:84,endurance:21,technique:50,resilience:55,total:527,playstyle:"Brawler",inflict:["Blind","Burn","Haze"],resist:["Haze","Drain"],immune:"Blind",threat:"B",personality:"Curious, hopeful, scattered, escapist"},
+  {name:"Eri Fujino",pronouns:"she/her",troupe:6,group:"Ghost Fountain",element:"Shadow",aspect:"Soul",mbti:"ISFP",family:"Explorer",role:"Support",power:50,control:60,support:72,speed:45,defense:109,hp:123,endurance:62,technique:50,resilience:88,total:659,playstyle:"Support",inflict:["Drain","Haze","Corrode"],resist:["Blind","Burn"],immune:"Drain",threat:"C",personality:"Poetic, introspective, melancholic, volatile"},
+  {name:"Fuyuko Kurihara",pronouns:"she/her",troupe:6,group:"Ghost Fountain",element:"Ice",aspect:"Echo",mbti:"INFJ",family:"Diplomat",role:"Disruptor",power:45,control:82,support:48,speed:50,defense:100,hp:105,endurance:60,technique:66,resilience:92,total:648,playstyle:"Disruptor",inflict:["Freeze","Chill","Corrode"],resist:["Burn","Drain"],immune:"Freeze",threat:"B",personality:"Profound, discerning, isolating, esoteric"},
+  {name:"Gillian Wiley",pronouns:"she/they",troupe:7,group:"Static Crown",element:"Metal",aspect:"Storm",mbti:"ENTJ",family:"Analyst",role:"Tank",power:103,control:58,support:15,speed:72,defense:122,hp:157,endurance:46,technique:55,resilience:93,total:721,playstyle:"Vanguard",inflict:["Fracture","Expose","Anchor"],resist:["Freeze","Drain"],immune:"Fracture",threat:"A",personality:"Decisive, commanding, dominating, intimidating"},
+  {name:"Hayami Amamiya",pronouns:"they/them",troupe:2,group:"Glitch Garden",element:"Lightning",aspect:"Calm",mbti:"ISTP",family:"Explorer",role:"Attacker",power:150,control:90,support:24,speed:142,defense:82,hp:85,endurance:43,technique:100,resilience:75,total:791,playstyle:"Blitz",inflict:["Overload","Stagger","Rupture"],resist:["Soak","Freeze"],immune:"Overload",threat:"SS",personality:"Pragmatic, efficient, cynical, blunt"},
+  {name:"Hibiki Masami",pronouns:"she/her",troupe:2,group:"Velvet Chainsaw",element:"Shadow",aspect:"Silent",mbti:"INFJ",family:"Diplomat",role:"Support",power:40,control:78,support:65,speed:60,defense:110,hp:123,endurance:68,technique:64,resilience:94,total:702,playstyle:"Battle Medic",inflict:["Drain","Haze","Blind"],resist:["Blind","Freeze"],immune:"Drain",threat:"C",personality:"Ideological, private, self-deprecating, hyper-vigilant"},
+  {name:"Himari Kobayashi",pronouns:"she/her",troupe:4,group:"Rust Parade",element:"Water",aspect:"Soul",mbti:"ISFP",family:"Explorer",role:"Support",power:55,control:50,support:80,speed:60,defense:107,hp:122,endurance:58,technique:49,resilience:84,total:665,playstyle:"Support",inflict:["Soak","Chill","Drain"],resist:["Burn","Corrode"],immune:"Soak",threat:"C",personality:"Tender, generous, co-dependent, intrusive"},
+  {name:"Himiko Nakayama",pronouns:"they/them",troupe:5,group:"Glitch Garden",element:"Earth",aspect:"Crest",mbti:"ENFJ",family:"Diplomat",role:"Support",power:55,control:70,support:106,speed:62,defense:109,hp:123,endurance:76,technique:61,resilience:95,total:757,playstyle:"Full Support",inflict:["Root","Fortify","Anchor"],resist:["Fracture","Wither"],immune:"Root",threat:"A",personality:"Constructive, invigorating, explosive, prone-to-anger"},
+  {name:"Hiromi Masaki",pronouns:"she/her",troupe:1,group:"Rust Parade",element:"Aether",aspect:"Calm",mbti:"INTJ",family:"Analyst",role:"Disruptor",power:72,control:120,support:30,speed:55,defense:104,hp:106,endurance:74,technique:93,resilience:105,total:759,playstyle:"Tactician",inflict:["Resonate","Expose","Fracture"],resist:["Nullify","Drain"],immune:"Resonate",threat:"A",personality:"Logical, systematic, pedantic, unfeeling"},
+  {name:"Kamiko Handa",pronouns:"she/her",troupe:1,group:"Glitch Garden",element:"Light",aspect:"Echo",mbti:"ESFP",family:"Explorer",role:"Disruptor",power:60,control:70,support:45,speed:91,defense:97,hp:104,endurance:49,technique:71,resilience:86,total:673,playstyle:"Harasser",inflict:["Blind","Haze","Drain"],resist:["Haze","Corrode"],immune:"Blind",threat:"B",personality:"Captivating, cheerful, easily bored, sensation-seeking"},
+  {name:"Katie Olson",pronouns:"she/her",troupe:3,group:"Velvet Chainsaw",element:"Air",aspect:"Echo",mbti:"INFP",family:"Diplomat",role:"Disruptor",power:45,control:72,support:58,speed:65,defense:99,hp:105,endurance:57,technique:64,resilience:89,total:654,playstyle:"Disruptor",inflict:["Silence","Stagger","Nullify"],resist:["Root","Soak"],immune:"Silence",threat:"S",personality:"Principled, meticulous, worrying, neurotic"},
+  {name:"Kirumi Suzuki",pronouns:"she/her",troupe:8,group:"Velvet Chainsaw",element:"Water",aspect:"Silent",mbti:"ISFJ",family:"Sentinel",role:"Support",power:35,control:72,support:101,speed:48,defense:110,hp:123,endurance:77,technique:57,resilience:95,total:718,playstyle:"Full Support",inflict:["Soak","Drain","Chill"],resist:["Burn","Haze"],immune:"Soak",threat:"B",personality:"Sympathetic, faithful, people-pleasing, self-effacing"},
+  {name:"Koharu Ishii",pronouns:"she/her",troupe:8,group:"Static Crown",element:"Earth",aspect:"Forge",mbti:"ESTJ",family:"Sentinel",role:"Tank",power:70,control:88,support:35,speed:48,defense:127,hp:158,endurance:70,technique:64,resilience:108,total:768,playstyle:"Fortress",inflict:["Root","Anchor","Fortify"],resist:["Fracture","Soak"],immune:"Root",threat:"A",personality:"Organized, results-driven, harsh, micromanaging"},
+  {name:"Lily Raven",pronouns:"she/her",troupe:5,group:"Rust Parade",element:"Water",aspect:"Bloom",mbti:"ESFJ",family:"Sentinel",role:"Support",power:50,control:45,support:97,speed:55,defense:107,hp:122,endurance:61,technique:44,resilience:84,total:665,playstyle:"Full Support",inflict:["Soak","Chill","Haze"],resist:["Burn","Corrode"],immune:"Soak",threat:"C",personality:"Gregarious, hospitable, meddling, approval-seeking"},
+  {name:"Maia Park",pronouns:"she/her",troupe:3,group:"Atomic Lullaby",element:"Light",aspect:"Bloom",mbti:"ENFP",family:"Diplomat",role:"Attacker",power:86,control:55,support:48,speed:86,defense:82,hp:85,endurance:38,technique:58,resilience:65,total:603,playstyle:"Brawler",inflict:["Blind","Haze","Soak"],resist:["Haze","Drain"],immune:"Blind",threat:"B",personality:"Quick-witted, entrepreneurial, reckless, inconsistent"},
+  {name:"Maki Shigeno",pronouns:"she/her",troupe:3,group:"Atomic Lullaby",element:"Fire",aspect:"Soul",mbti:"ENFP",family:"Diplomat",role:"Attacker",power:96,control:48,support:35,speed:70,defense:81,hp:84,endurance:33,technique:51,resilience:61,total:559,playstyle:"Brawler",inflict:["Burn","Drain","Haze"],resist:["Chill","Freeze"],immune:"Burn",threat:"B",personality:"Exuberant, enthusiastic, melodramatic, avoidant"},
+  {name:"Mayumi Sasaki",pronouns:"she/her",troupe:7,group:"Ghost Fountain",element:"Ice",aspect:"Silent",mbti:"ISFJ",family:"Sentinel",role:"Disruptor",power:40,control:96,support:55,speed:38,defense:103,hp:106,endurance:71,technique:71,resilience:99,total:679,playstyle:"Tactician",inflict:["Freeze","Chill","Haze"],resist:["Burn","Corrode"],immune:"Freeze",threat:"C",personality:"Soft, caring, reclusive, catastrophizing"},
+  {name:"Mica Dwyer",pronouns:"she/they",troupe:1,group:"Neon Graveyard",element:"Fire",aspect:"Fury",mbti:"ENTP",family:"Analyst",role:"Attacker",power:137,control:30,support:10,speed:75,defense:79,hp:84,endurance:16,technique:45,resilience:51,total:527,playstyle:"Brawler",inflict:["Burn","Corrode","Haze"],resist:["Chill","Blind"],immune:"Burn",threat:"B",personality:"Assertive, combative, egotistical, domineering"},
+  {name:"Mieko Ozawa",pronouns:"she/her",troupe:8,group:"Static Crown",element:"Fire",aspect:"Crest",mbti:"ENTJ",family:"Analyst",role:"Support",power:75,control:65,support:86,speed:60,defense:109,hp:123,endurance:67,technique:60,resilience:91,total:736,playstyle:"Full Support",inflict:["Burn","Haze","Drain"],resist:["Chill","Corrode"],immune:"Burn",threat:"B",personality:"Polished, powerful, image-obsessed, self-aggrandizing"},
+  {name:"Miki Naoki",pronouns:"they/them",troupe:1,group:"Glitch Garden",element:"Water",aspect:"Storm",mbti:"ESTP",family:"Explorer",role:"Attacker",power:78,control:45,support:20,speed:127,defense:79,hp:84,endurance:21,technique:62,resilience:57,total:573,playstyle:"Striker",inflict:["Soak","Chill","Corrode"],resist:["Burn","Blind"],immune:"Soak",threat:"B",personality:"Loud, risk-taking, crass, self-serving"},
+  {name:"Mitsuki Nakamura",pronouns:"she/her",troupe:5,group:"Neon Graveyard",element:"Aether",aspect:"Storm",mbti:"ENFP",family:"Diplomat",role:"Attacker",power:75,control:40,support:30,speed:108,defense:79,hp:84,endurance:23,technique:54,resilience:57,total:550,playstyle:"Striker",inflict:["Resonate","Fracture","Expose"],resist:["Nullify","Blind"],immune:"Resonate",threat:"A",personality:"Playful, inventive, hyperactive, fear-of-missing-out"},
+  {name:"Natsume Uemura",pronouns:"she/her",troupe:1,group:"Neon Graveyard",element:"Nature",aspect:"Soul",mbti:"ESFP",family:"Explorer",role:"Support",power:50,control:55,support:95,speed:48,defense:109,hp:123,endurance:66,technique:48,resilience:88,total:682,playstyle:"Full Support",inflict:["Wither","Bloom","Soak"],resist:["Drain","Haze"],immune:"Wither",threat:"A",personality:"Aesthetic, dazzling, self-focused, erratic"},
+  {name:"Paula Lopez",pronouns:"she/her",troupe:2,group:"Neon Graveyard",element:"Ice",aspect:"Calm",mbti:"INTP",family:"Analyst",role:"Disruptor",power:65,control:105,support:35,speed:42,defense:104,hp:106,endurance:69,technique:80,resilience:100,total:706,playstyle:"Tactician",inflict:["Freeze","Chill","Blind"],resist:["Burn","Soak"],immune:"Freeze",threat:"B",personality:"Cerebral, penetrating, detached, condescending"},
+  {name:"Reiko Adachi",pronouns:"she/her",troupe:4,group:"Static Crown",element:"Ice",aspect:"Silent",mbti:"INTJ",family:"Analyst",role:"Disruptor",power:55,control:85,support:30,speed:50,defense:101,hp:105,endurance:57,technique:69,resilience:91,total:643,playstyle:"Tactician",inflict:["Freeze","Chill","Haze"],resist:["Burn","Corrode"],immune:"Freeze",threat:"B",personality:"Dignified, formal, shame-focused, image-driven"},
+  {name:"Sakae Izumi",pronouns:"they/them",troupe:7,group:"Velvet Chainsaw",element:"Aether",aspect:"Calm",mbti:"ISTP",family:"Explorer",role:"Disruptor",power:60,control:113,support:28,speed:58,defense:103,hp:106,endurance:69,technique:88,resilience:102,total:727,playstyle:"Tactician",inflict:["Resonate","Expose","Fracture"],resist:["Nullify","Drain"],immune:"Resonate",threat:"A",personality:"Mechanical, vigilant, suspicious, emotionally reserved"},
+  {name:"Shaye Kaylen",pronouns:"they/them",troupe:2,group:"Neon Graveyard",element:"Fire",aspect:"Storm",mbti:"ESTP",family:"Explorer",role:"Attacker",power:113,control:28,support:10,speed:114,defense:77,hp:83,endurance:11,technique:52,resilience:49,total:537,playstyle:"Brawler",inflict:["Burn","Corrode","Blind"],resist:["Chill","Freeze"],immune:"Burn",threat:"B",personality:"Forceful, daring, hot-headed, entitled"},
+  {name:"Shiina Ishioka",pronouns:"she/her",troupe:4,group:"Glitch Garden",element:"Light",aspect:"Crest",mbti:"ISFP",family:"Explorer",role:"Support",power:20,control:65,support:130,speed:35,defense:110,hp:123,endurance:83,technique:48,resilience:96,total:710,playstyle:"Full Support",inflict:["Blind","Haze","Corrode"],resist:["Haze","Burn"],immune:"Blind",threat:"B",personality:"Selfless, earnest, guilt-ridden, submissive"},
+  {name:"Shizuka Aikawa",pronouns:"she/her",troupe:2,group:"Static Crown",element:"Aether",aspect:"Forge",mbti:"ESTJ",family:"Sentinel",role:"Tank",power:70,control:85,support:50,speed:40,defense:127,hp:158,endurance:74,technique:60,resilience:108,total:772,playstyle:"Fortress",inflict:["Resonate","Anchor","Fracture"],resist:["Nullify","Corrode"],immune:"Resonate",threat:"A",personality:"Authoritative, dominant, dictatorial, impatient"},
+  {name:"Sonia Spade",pronouns:"she/her",troupe:3,group:"Ghost Fountain",element:"Shadow",aspect:"Echo",mbti:"INFJ",family:"Diplomat",role:"Disruptor",power:50,control:68,support:55,speed:52,defense:99,hp:105,endurance:55,technique:59,resilience:87,total:630,playstyle:"Disruptor",inflict:["Drain","Corrode","Haze"],resist:["Blind","Burn"],immune:"Drain",threat:"C",personality:"Complex, introspective, brooding, inaccessible"},
+  {name:"Theresa Felix",pronouns:"she/they",troupe:4,group:"Atomic Lullaby",element:"Earth",aspect:"Boundless",mbti:"ESFP",family:"Explorer",role:"Tank",power:78,control:35,support:40,speed:70,defense:120,hp:156,endurance:43,technique:38,resilience:86,total:666,playstyle:"Vanguard",inflict:["Root","Anchor","Expose"],resist:["Fracture","Drain"],immune:"Root",threat:"A",personality:"Glamorous, dramatic, hedonistic, overwhelmed"},
+];
+
+function roleColor(r){ return {Attacker:'var(--danger)',Tank:'var(--accent2)',Support:'var(--teal)',Disruptor:'var(--warn)'}[r]||'var(--muted)'; }
+function roleClass(r){ return 'role-color-'+r.toLowerCase(); }
+function roleBgClass(r){ return 'role-bg-'+r.toLowerCase(); }
+function threatColor(t){ return {SS:'#ff5757',S:'#ffb657',A:'#57c8ff',B:'#57ffca',C:'#6b6b80'}[t]||'#6b6b80'; }
+function rnd(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
+function initials(n){ return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function avatarColors(r){ 
+  const map={Attacker:['rgba(255,87,87,0.2)','#ff5757'],Tank:['rgba(87,200,255,0.2)','#57c8ff'],Support:['rgba(87,255,202,0.2)','#57ffca'],Disruptor:['rgba(255,182,87,0.2)','#ffb657']};
+  return map[r]||['rgba(107,107,128,0.2)','#6b6b80'];
+}
+
+// ═══════════════════ BATTLE ═══════════════════
+let battleFighters = [null, null];
+let battleInProgress = false;
+
+function buildBattleGrid(){
+  const g = document.getElementById('battle-char-grid');
+  g.innerHTML = CHARS.map(c=>`
+    <div class="char-chip" id="bchip-${c.name.replace(/\s/g,'_')}" onclick="selectFighter('${c.name}')">
+      <div class="char-chip-name ${roleClass(c.role)}">${c.name}</div>
+      <div class="char-chip-sub">${c.element} · ${c.role} · ${c.threat}</div>
+    </div>
+  `).join('');
+}
+
+function selectFighter(name){
+  if(battleInProgress) return;
+  const c = CHARS.find(x=>x.name===name);
+  const chipId = 'bchip-'+name.replace(/\s/g,'_');
+  const chip = document.getElementById(chipId);
+  
+  if(battleFighters[0]&&battleFighters[0].name===name){
+    battleFighters[0]=null; chip.classList.remove('selected-1');
+  } else if(battleFighters[1]&&battleFighters[1].name===name){
+    battleFighters[1]=null; chip.classList.remove('selected-2');
+  } else if(!battleFighters[0]){
+    battleFighters[0]=c; chip.classList.add('selected-1');
+  } else if(!battleFighters[1]){
+    battleFighters[1]=c; chip.classList.add('selected-2');
+  } else {
+    const old=battleFighters[0];
+    document.getElementById('bchip-'+old.name.replace(/\s/g,'_')).classList.remove('selected-1');
+    battleFighters[0]=c; chip.classList.add('selected-1');
+  }
+  updateSlots();
+}
+
+function fighterCard(c, side){
+  if(!c) return `<div class="empty-slot">${side===1?'← select fighter 1':'select fighter 2 →'}</div>`;
+  const [bg,tc]=avatarColors(c.role);
+  const stats=[
+    {l:'PWR',v:c.power,m:160,col:'#ff5757'},
+    {l:'SPD',v:c.speed,m:160,col:'#ffb657'},
+    {l:'DEF',v:c.defense,m:135,col:'#a857ff'},
+    {l:'HP',v:c.hp,m:165,col:'#57c8ff'},
+    {l:'TEC',v:c.technique,m:105,col:'#57ffca'},
+  ];
+  return `
+    <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.75rem">
+      <div class="team-avatar" style="background:${bg};color:${tc};width:38px;height:38px;font-size:.9rem">${initials(c.name)}</div>
+      <div>
+        <div class="fighter-name" style="color:${side===1?'var(--danger)':'var(--accent2)'}">${c.name}</div>
+        <div style="font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace">${c.element} · ${c.mbti} · ${c.group}</div>
+      </div>
+    </div>
+    <span class="fighter-role-badge ${roleBgClass(c.role)}" style="color:${roleColor(c.role)};border:1px solid">${c.role} — ${c.playstyle}</span>
+    <div class="stat-list" style="margin-top:.75rem">
+      ${stats.map(s=>`
+        <div class="stat-line">
+          <span class="stat-line-label">${s.l}</span>
+          <div class="stat-bar-wrap"><div class="stat-bar-fill" style="width:${Math.round(s.v/s.m*100)}%;background:${s.col}"></div></div>
+          <span class="stat-line-val">${s.v}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:.75rem;font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace">
+      INFLICTS: ${c.inflict.map(x=>`<span style="color:var(--warn)">${x}</span>`).join(' · ')}
+    </div>
+  `;
+}
+
+function updateSlots(){
+  document.getElementById('slot-1').innerHTML=fighterCard(battleFighters[0],1);
+  document.getElementById('slot-2').innerHTML=fighterCard(battleFighters[1],2);
+  document.getElementById('start-battle-btn').disabled=!(battleFighters[0]&&battleFighters[1]);
+}
+
+function resetBattle(){
+  battleFighters=[null,null]; battleInProgress=false;
+  document.querySelectorAll('.char-chip').forEach(c=>c.classList.remove('selected-1','selected-2'));
+  updateSlots();
+  document.getElementById('battle-log').innerHTML='';
+  document.getElementById('hp-bars').style.display='none';
+  document.getElementById('start-battle-btn').disabled=true;
+  document.getElementById('battle-status').textContent='';
+}
+
+// Battle engine
+function startBattle(){
+  if(!battleFighters[0]||!battleFighters[1]) return;
+  battleInProgress=true;
+  document.getElementById('start-battle-btn').disabled=true;
+  const log=document.getElementById('battle-log');
+  log.innerHTML='';
+  const hpBars=document.getElementById('hp-bars');
+  hpBars.style.display='grid';
+
+  const p1={...battleFighters[0]};
+  const p2={...battleFighters[1]};
+  let hp1=p1.hp*8, hp2=p2.hp*8;
+  const maxHp1=hp1, maxHp2=hp2;
+  const conds1=[], conds2=[];
+
+  document.getElementById('p1name-bar').textContent=p1.name.split(' ')[0];
+  document.getElementById('p2name-bar').textContent=p2.name.split(' ')[0];
+
+  function updateBars(){
+    const p1pct=Math.max(0,Math.round(hp1/maxHp1*100));
+    const p2pct=Math.max(0,Math.round(hp2/maxHp2*100));
+    document.getElementById('p1bar').style.width=p1pct+'%';
+    document.getElementById('p2bar').style.width=p2pct+'%';
+    document.getElementById('p1hp-label').textContent=`${Math.max(0,Math.round(hp1/8))} / ${Math.round(maxHp1/8)}`;
+    document.getElementById('p2hp-label').textContent=`${Math.max(0,Math.round(hp2/8))} / ${Math.round(maxHp2/8)}`;
+  }
+
+  function addLog(cls,text){ 
+    const d=document.createElement('div');
+    d.className=cls; d.innerHTML=text; log.appendChild(d);
+    log.scrollTop=log.scrollHeight;
+  }
+
+  function hasCond(arr,c){ return arr.includes(c); }
+  function addCond(arr,c){ if(!arr.includes(c)) arr.push(c); }
+  function removeCond(arr,c){ const i=arr.indexOf(c); if(i>-1) arr.splice(i,1); }
+
+  function condStr(arr){ return arr.length?arr.map(c=>`<span class="cond-badge">${c}</span>`).join(''):'—'; }
+
+  // Calculate damage
+  function calcDamage(attacker, defender, defConds){
+    let base = attacker.power * (0.7 + Math.random()*0.6);
+    let defMod = defender.defense;
+    if(hasCond(defConds,'Corrode')) defMod *= 0.55;
+    if(hasCond(defConds,'Expose')) defMod *= 0.3;
+    let dmg = Math.max(1, base - defMod*0.4);
+    if(hasCond(defConds,'Soak') && attacker.element==='Fire') dmg *= 0.7;
+    if(hasCond(defConds,'Freeze')) dmg *= 1.3;
+    if(hasCond(defConds,'Overload')) dmg += attacker.power * 0.4;
+    if(hasCond(defConds,'Rupture')) dmg += attacker.power * 0.25;
+    return Math.round(dmg);
+  }
+
+  // Try to inflict condition
+  function tryInflict(attacker, targetConds, condName, chance){
+    if(Math.random()<chance && !targetConds.includes(condName)){
+      addCond(targetConds,condName);
+      return true;
+    }
+    return false;
+  }
+
+  // Speed determines first turn
+  let turn=1;
+  const maxTurns=30;
+
+  // Battle sequence — delayed for dramatic effect
+  function runTurn(){
+    if(hp1<=0||hp2<=0||turn>maxTurns){
+      const winner = hp1>0?p1:hp2>0?p2:null;
+      addLog('','');
+      if(winner){
+        addLog('log-win',`⚡ ${winner.name.toUpperCase()} WINS — ${winner.threat}-TIER CONFIRMED`);
+        addLog('log-sys',`Remaining HP: ${winner===p1?Math.round(hp1/8):Math.round(hp2/8)}`);
+      } else {
+        addLog('log-win','⚔ DOUBLE KO — DRAW');
+      }
+      battleInProgress=false;
+      document.getElementById('battle-status').textContent='Battle over';
+      return;
+    }
+
+    addLog('log-turn',`— TURN ${turn} —  [${p1.name}: ${condStr(conds1)}]  vs  [${p2.name}: ${condStr(conds2)}]`);
+
+    // Determine action order by speed
+    const p1first = (p1.speed*(hasCond(conds1,'Haze')?0.7:1)) >= (p2.speed*(hasCond(conds2,'Haze')?0.7:1));
+    const attackers = p1first ? [[p1,conds1,p2,conds2,1],[p2,conds2,p1,conds1,2]] : [[p2,conds2,p1,conds1,2],[p1,conds1,p2,conds2,1]];
+
+    for(const [atk,atkC,def,defC,side] of attackers){
+      if(hp1<=0||hp2<=0) break;
+      const isP1 = side===1;
+      const dmg = calcDamage(atk,def,defC);
+      
+      if(isP1) { hp2-=dmg; hp2=Math.max(0,hp2); }
+      else { hp1-=dmg; hp1=Math.max(0,hp1); }
+
+      // Generate flavor move
+      const moveType = atk.role==='Attacker'?rnd(['unleashes','slams','drives','blasts']):
+                       atk.role==='Tank'?rnd(['forces through','shoves','charges']):
+                       atk.role==='Disruptor'?rnd(['disrupts','tags','clips','laces']):
+                       rnd(['strikes','hits','catches']);
+      
+      const cls = isP1?'log-hit':'log-p2hit';
+      addLog(cls,`  ${atk.name} ${moveType} ${def.name} for <strong>${dmg}</strong> damage`);
+
+      // Try condition infliction
+      const condChance = 0.28 + (atk.technique/200);
+      const primaryCond = atk.inflict[0];
+      if(tryInflict(atk,defC,primaryCond,condChance)){
+        addLog('log-cond',`    → ${def.name} is afflicted with ${primaryCond}!`);
+        // Chain effects
+        if(primaryCond==='Chill'&&hasCond(defC,'Soak')){
+          addCond(defC,'Freeze'); removeCond(defC,'Chill');
+          addLog('log-special',`    ⚡ Soak+Chill → FREEZE triggered!`);
+        }
+      }
+
+      // Special condition effects
+      if(hasCond(defC,'Burn')){ 
+        const bdmg=Math.round(def.hp*0.6);
+        if(isP1) hp2-=bdmg; else hp1-=bdmg;
+        addLog('log-cond',`    Burn ticks: ${def.name} takes ${bdmg} damage`);
+      }
+      if(hasCond(defC,'Drain')){
+        const drn=Math.round(def.hp*0.4);
+        if(isP1){ hp2-=drn; hp1+=Math.round(drn*0.5); hp1=Math.min(hp1,maxHp1); }
+        else { hp1-=drn; hp2+=Math.round(drn*0.5); hp2=Math.min(hp2,maxHp2); }
+        addLog('log-heal',`    Drain: ${atk.name} recovers ${Math.round(drn*0.5)} HP`);
+      }
+      if(hasCond(atkC,'Overload')&&atk.name===p1.name){
+        const overDmg=Math.round(atk.power*0.3);
+        hp1-=overDmg; hp1=Math.max(0,hp1);
+        addLog('log-special',`    ⚡ OVERLOAD — ${atk.name} takes ${overDmg} self-damage from their own power!`);
+      }
+
+      // Support characters sometimes heal themselves
+      if(atk.role==='Support'&&Math.random()<0.3){
+        const heal=Math.round(atk.support*1.5);
+        if(isP1){ hp1+=heal; hp1=Math.min(hp1,maxHp1); }
+        else { hp2+=heal; hp2=Math.min(hp2,maxHp2); }
+        addLog('log-heal',`    ${atk.name} recovers ${heal} HP`);
+      }
+
+      // Condition decay (remove 1 random old cond)
+      if(Math.random()<0.25&&atkC.length>0){
+        const rem=atkC.splice(Math.floor(Math.random()*atkC.length),1)[0];
+        addLog('log-sys',`    ${atk.name} shakes off ${rem}`);
+      }
+
+      updateBars();
+      if(isP1) document.getElementById('slot-2').classList.toggle('flash-blue');
+      else document.getElementById('slot-1').classList.toggle('flash-red');
+    }
+
+    turn++;
+    updateBars();
+    setTimeout(runTurn, 260);
+  }
+
+  addLog('log-sys',`Battle begins: ${p1.name} [${p1.threat}] vs ${p2.name} [${p2.threat}]`);
+  addLog('log-sys',`Speed check — ${p1.speed>p2.speed?p1.name:p2.name} moves first`);
+  updateBars();
+  setTimeout(runTurn, 400);
+}
+
+// ═══════════════════ GACHA / DRAFT ═══════════════════
+let draftTeams = [null, null];
+
+function rollDraft(){
+  const size = parseInt(document.getElementById('team-size').value);
+  const pool = document.getElementById('draft-pool').value;
+  let eligible = [...CHARS];
+  
+  if(pool==='troupe'){
+    const troupes=shuffle([...new Set(CHARS.map(c=>c.troupe))]);
+    const t1=troupes[0], t2=troupes[1];
+    const t1chars=shuffle(CHARS.filter(c=>c.troupe===t1)).slice(0,size);
+    const t2chars=shuffle(CHARS.filter(c=>c.troupe===t2)).slice(0,size);
+    draftTeams=[{name:`Troupe ${t1}`,chars:t1chars},{name:`Troupe ${t2}`,chars:t2chars}];
+  } else if(pool==='cross'){
+    const groups=[
+      {name:'Glitch Garden',chars:CHARS.filter(c=>c.group==='Glitch Garden')},
+      {name:'Neon Graveyard',chars:CHARS.filter(c=>c.group==='Neon Graveyard')},
+      {name:'Velvet Chainsaw',chars:CHARS.filter(c=>c.group==='Velvet Chainsaw')},
+      {name:'Static Crown',chars:CHARS.filter(c=>c.group==='Static Crown')},
+      {name:'Atomic Lullaby',chars:CHARS.filter(c=>c.group==='Atomic Lullaby')},
+      {name:'Ghost Fountain',chars:CHARS.filter(c=>c.group==='Ghost Fountain')},
+      {name:'Rust Parade',chars:CHARS.filter(c=>c.group==='Rust Parade')},
+    ];
+    const picked=shuffle(groups).slice(0,2);
+    draftTeams=picked.map(g=>({name:g.name,chars:shuffle(g.chars).slice(0,size)}));
+  } else {
+    const all=shuffle(eligible);
+    draftTeams=[{name:'Team Alpha',chars:all.slice(0,size)},{name:'Team Beta',chars:all.slice(size,size*2)}];
+  }
+
+  renderDraftTeams();
+  document.getElementById('analyze-btn').disabled=false;
+  document.getElementById('draft-analysis').innerHTML='';
+}
+
+function getSynergies(chars){
+  const syns=[];
+  const roles=chars.map(c=>c.role);
+  const elems=chars.map(c=>c.element);
+  if(roles.includes('Tank')&&roles.includes('Support')) syns.push('Core Cover');
+  if(roles.filter(r=>r==='Attacker').length>=2) syns.push('Double Strike');
+  if(roles.includes('Disruptor')&&roles.includes('Attacker')) syns.push('Break+Burst');
+  if(elems.includes('Water')&&elems.includes('Ice')) syns.push('Cryo Chain');
+  if(elems.includes('Fire')&&elems.includes('Metal')) syns.push('Forge Pressure');
+  if(elems.filter(e=>e==='Aether').length>=2) syns.push('Resonance Net');
+  if(chars.some(c=>c.inflict.includes('Soak'))&&chars.some(c=>c.inflict.includes('Chill'))) syns.push('Freeze Setup');
+  if(chars.some(c=>c.inflict.includes('Corrode'))&&chars.some(c=>c.inflict.includes('Fracture'))) syns.push('Armor Shred');
+  if(chars.some(c=>c.inflict.includes('Expose'))&&chars.some(c=>c.power>100)) syns.push('Expose+Nuke');
+  if(chars.some(c=>c.threat==='SS')) syns.push('SS Anchor');
+  if(chars.some(c=>c.threat==='S')) syns.push('S-Tier Wild Card');
+  return syns;
+}
+
+function renderDraftTeams(){
+  const [t1,t2]=draftTeams;
+  const container=document.getElementById('gacha-teams');
+  
+  function teamHtml(team, idx){
+    const syn=getSynergies(team.chars);
+    const avgTotal=Math.round(team.chars.reduce((a,c)=>a+c.total,0)/team.chars.length);
+    const roles=team.chars.map(c=>`<span style="color:${roleColor(c.role)};font-size:.65rem">${c.role[0]}</span>`).join(' ');
+    return `
+      <div class="team-panel" style="border-color:${idx===0?'rgba(255,87,87,0.15)':'rgba(87,200,255,0.15)'}">
+        <div class="team-panel-title" style="color:${idx===0?'var(--danger)':'var(--accent2)'}">${team.name}</div>
+        ${team.chars.map(c=>{
+          const [bg,tc]=avatarColors(c.role);
+          return `<div class="team-card">
+            <div class="team-avatar" style="background:${bg};color:${tc}">${initials(c.name)}</div>
+            <div>
+              <div class="team-card-name">${c.name}</div>
+              <div class="team-card-sub">${c.element} · ${c.role} · ${c.mbti}</div>
+            </div>
+            <div class="team-stats">
+              <div class="team-stat-total">${c.total}</div>
+              <div style="font-size:.6rem;color:${threatColor(c.threat)};font-family:'DM Mono',monospace">${c.threat}</div>
+            </div>
+          </div>`;
+        }).join('')}
+        <div class="team-summary">
+          avg: <strong style="color:var(--text)">${avgTotal}</strong>
+          ${syn.map(s=>`<span class="synergy-tag">${s}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  container.innerHTML=teamHtml(t1,0)+teamHtml(t2,1);
+}
+
+function analyzeDraft(){
+  if(!draftTeams[0]) return;
+  const [t1,t2]=draftTeams;
+  const out=document.getElementById('draft-analysis');
+  out.innerHTML=`<div class="scene-output"><span class="thinking">analyzing matchup...</span></div>`;
+
+  const prompt=`You are a Dark Nova Squad battle analyst. Given two teams, write a punchy matchup analysis in 3 short paragraphs: team strengths, key threats, and your predicted winner. Be specific about characters and their roles. Keep it under 150 words total. No headers needed, just flowing tactical text.
+
+Team 1 — ${t1.name}: ${t1.chars.map(c=>`${c.name} (${c.role}, ${c.element}, total ${c.total}, threat ${c.threat})`).join('; ')}
+Synergies: ${getSynergies(t1.chars).join(', ')||'none notable'}
+
+Team 2 — ${t2.name}: ${t2.chars.map(c=>`${c.name} (${c.role}, ${c.element}, total ${c.total}, threat ${c.threat})`).join('; ')}
+Synergies: ${getSynergies(t2.chars).join(', ')||'none notable'}`;
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+  }).then(r=>r.json()).then(d=>{
+    const text=d.content?.find(b=>b.type==='text')?.text||'Analysis unavailable.';
+    const [t1c,t2c]=draftTeams;
+    out.innerHTML=`<div class="scene-output">
+      <span class="scene-header">⚔ MATCHUP ANALYSIS</span>
+      <div style="display:flex;gap:1rem;margin-bottom:1rem">
+        <span style="color:var(--danger);font-family:'DM Mono',monospace;font-size:.72rem">${t1c.name}</span>
+        <span style="color:var(--muted)">vs</span>
+        <span style="color:var(--accent2);font-family:'DM Mono',monospace;font-size:.72rem">${t2c.name}</span>
+      </div>
+      ${text.replace(/\n/g,'<br>')}
+    </div>`;
+  }).catch(()=>{
+    out.innerHTML=`<div class="scene-output" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:.75rem">AI analysis unavailable — check connection.</div>`;
+  });
+}
+
+// ═══════════════════ SCENE GEN ═══════════════════
+let sceneChars=[];
+
+function buildSceneChips(){
+  const el=document.getElementById('scene-chars');
+  el.innerHTML=CHARS.map(c=>`
+    <div class="scene-char-chip" id="sc-${c.name.replace(/\s/g,'_')}" onclick="toggleSceneChar('${c.name}')">${c.name}</div>
+  `).join('');
+}
+
+function toggleSceneChar(name){
+  const id='sc-'+name.replace(/\s/g,'_');
+  const el=document.getElementById(id);
+  if(sceneChars.includes(name)){
+    sceneChars=sceneChars.filter(n=>n!==name);
+    el.classList.remove('active');
+  } else if(sceneChars.length<5){
+    sceneChars.push(name);
+    el.classList.add('active');
+  }
+  updateSceneUI();
+}
+
+function updateSceneUI(){
+  document.getElementById('scene-count').textContent=`${sceneChars.length} selected (pick 2–5)`;
+  document.getElementById('gen-scene-btn').disabled=sceneChars.length<2;
+}
+
+function randomSceneChars(){
+  sceneChars=[];
+  document.querySelectorAll('.scene-char-chip').forEach(c=>c.classList.remove('active'));
+  const count=2+Math.floor(Math.random()*4);
+  shuffle(CHARS).slice(0,count).forEach(c=>{
+    sceneChars.push(c.name);
+    document.getElementById('sc-'+c.name.replace(/\s/g,'_')).classList.add('active');
+  });
+  updateSceneUI();
+}
+
+function clearSceneChars(){
+  sceneChars=[];
+  document.querySelectorAll('.scene-char-chip').forEach(c=>c.classList.remove('active'));
+  updateSceneUI();
+}
+
+const vibeDescriptions = {
+  slice: 'casual slice-of-life moment — low stakes, natural dialogue, personality-driven',
+  rivalry: 'heated rivalry or dramatic confrontation — tension, history, things left unsaid',
+  'battle-banter': 'mid-battle banter — taunts, reactions, in-the-moment wit and pressure',
+  'mission-brief': 'pre-mission briefing — professional friction, strategic disagreements, nervous energy',
+  aftermath: 'post-fight aftermath — exhaustion, honesty, vulnerability after adrenaline fades',
+  downtime: 'off-duty chaos — characters fully out of mission mode, doing something mundane and chaotic',
+};
+
+function generateScene(){
+  if(sceneChars.length<2) return;
+  const out=document.getElementById('scene-output');
+  out.innerHTML='<span class="thinking">generating scene...</span>';
+
+  let vibe=document.getElementById('scene-vibe').value;
+  if(vibe==='random') vibe=rnd(Object.keys(vibeDescriptions));
+  const vibeDesc=vibeDescriptions[vibe]||vibeDescriptions.slice;
+
+  const cast=sceneChars.map(n=>{
+    const c=CHARS.find(x=>x.name===n);
+    return `${c.name} (${c.pronouns}) — ${c.mbti}, ${c.role}, ${c.element} user. Personality: ${c.personality}. Group: ${c.group}.`;
+  });
+
+  const prompt=`You are writing a vivid, character-accurate short scene for the original story Dark Nova Squad. Write a ${vibeDesc} scene featuring these characters:
+
+${cast.join('\n')}
+
+Rules:
+- Write in third-person prose, present tense, sharp and punchy like a shonen manga panel sequence
+- Each character's MBTI and personality must come through clearly in how they talk and act
+- Include at least 3 lines of dialogue
+- Reference their elements or abilities naturally if it fits the vibe
+- Keep it under 200 words
+- End on a moment, not a resolution — leave it hanging with energy
+- No headers, no labels, just the scene`;
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+  }).then(r=>r.json()).then(d=>{
+    const text=d.content?.find(b=>b.type==='text')?.text||'Scene generation unavailable.';
+    out.innerHTML=`
+      <span class="scene-header">✦ ${vibe.replace('-',' ').toUpperCase()}</span>
+      <div>${text.replace(/\n/g,'<br>')}</div>
+      <div style="margin-top:1rem;font-size:.68rem;font-family:'DM Mono',monospace;color:var(--muted)">cast: ${sceneChars.join(' · ')}</div>
+    `;
+  }).catch(()=>{
+    out.innerHTML=`<span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:.75rem">Scene generation unavailable — check connection.</span>`;
+  });
+}
+
+// ═══════════════════ NAV ═══════════════════
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// INIT
+buildBattleGrid();
+buildSceneChips();
+updateSlots();
+</script>
+</body>
+</html>

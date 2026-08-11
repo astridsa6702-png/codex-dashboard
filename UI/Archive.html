@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Story Archive</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #1a1a2e; color: #e0d5c5; min-height: 100vh; }
+
+    header {
+      background: #16213e; border-bottom: 2px solid #4a3f6b;
+      padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 1.6rem; color: #c8a96e; letter-spacing: 1px; }
+    header nav button {
+      background: none; border: 1px solid #4a3f6b; color: #c8a96e;
+      padding: 8px 18px; margin-left: 8px; border-radius: 4px;
+      cursor: pointer; font-family: Georgia, serif; transition: background 0.2s;
+    }
+    header nav button:hover, header nav button.active { background: #4a3f6b; color: #fff; }
+
+    .page { display: none; padding: 32px; max-width: 960px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* BROWSE */
+    #search-bar {
+      width: 100%; padding: 10px 16px; background: #16213e;
+      border: 1px solid #4a3f6b; border-radius: 6px; color: #e0d5c5;
+      font-size: 1rem; margin-bottom: 16px; font-family: Georgia, serif;
+    }
+    #search-bar::placeholder { color: #7a6f8a; }
+    .filters { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filters select {
+      background: #16213e; border: 1px solid #4a3f6b; color: #e0d5c5;
+      padding: 6px 12px; border-radius: 4px; font-family: Georgia, serif; cursor: pointer;
+    }
+
+    .story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .story-card {
+      background: #16213e; border: 1px solid #2e2a4a; border-radius: 8px;
+      padding: 20px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; position: relative;
+    }
+    .story-card:hover { border-color: #c8a96e; transform: translateY(-2px); }
+    .story-card h3 { color: #c8a96e; font-size: 1.1rem; margin-bottom: 6px; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .pill { display: inline-block; font-size: 0.73rem; padding: 2px 8px; border-radius: 12px; }
+    .pill-fandom { background: #2e2a4a; color: #a08ec0; }
+    .pill-char   { background: #1e3a2e; color: #7ec8a0; }
+    .pill-tag    { background: #2a2a1e; color: #c8b870; }
+    .story-card p {
+      font-size: 0.88rem; color: #9a8f9a; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .story-card .meta {
+      margin-top: 12px; font-size: 0.78rem; color: #6a5f7a;
+      display: flex; justify-content: space-between;
+    }
+    .story-card .card-actions {
+      position: absolute; top: 12px; right: 12px;
+      display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s;
+    }
+    .story-card:hover .card-actions { opacity: 1; }
+    .card-actions button {
+      background: #2e2a4a; border: none; color: #e0d5c5;
+      width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-actions button:hover { background: #4a3f6b; }
+    .card-actions .btn-del:hover { background: #6b2a2a; }
+    .empty-state { text-align: center; color: #5a4f6a; padding: 60px 0; font-size: 1.1rem; grid-column: 1/-1; }
+    .empty-state span { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+    /* WRITE */
+    .write-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+    .form-group label { font-size: 0.85rem; color: #a08ec0; }
+    .form-group input, .form-group select, .form-group textarea {
+      background: #16213e; border: 1px solid #2e2a4a; color: #e0d5c5;
+      padding: 10px 14px; border-radius: 6px; font-family: Georgia, serif;
+      font-size: 0.95rem; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: #c8a96e;
+    }
+
+    /* TAG INPUT WIDGET */
+    .tag-input-wrapper {
+      background: #16213e; border: 1px solid #2e2a4a; border-radius: 6px;
+      padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 6px;
+      align-items: center; cursor: text; transition: border-color 0.2s; min-height: 44px;
+    }
+    .tag-input-wrapper:focus-within { border-color: #c8a96e; }
+    .tag-chip {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; white-space: nowrap;
+    }
+    .tag-chip button {
+      background: none; border: none; cursor: pointer;
+      font-size: 0.7rem; line-height: 1; padding: 0; opacity: 0.7;
+      color: inherit;
+    }
+    .tag-chip button:hover { opacity: 1; }
+    .chip-char { background: #1e3a2e; color: #7ec8a0; }
+    .chip-tag  { background: #2a2a1e; color: #c8b870; }
+    .chip-fandom { background: #2e2a4a; color: #a08ec0; }
+
+    .tag-input-inner {
+      background: none; border: none; outline: none;
+      color: #e0d5c5; font-family: Georgia, serif; font-size: 0.93rem;
+      min-width: 120px; flex: 1;
+    }
+    .tag-hint { font-size: 0.75rem; color: #5a4f6a; margin-top: 3px; }
+
+    #story-content { min-height: 400px; line-height: 1.8; resize: vertical; }
+
+    .btn-primary {
+      background: #4a3f6b; border: none; color: #e0d5c5;
+      padding: 12px 28px; border-radius: 6px; cursor: pointer;
+      font-size: 1rem; font-family: Georgia, serif; transition: background 0.2s; align-self: flex-start;
+    }
+    .btn-primary:hover { background: #c8a96e; color: #1a1a2e; }
+    .btn-secondary {
+      background: none; border: 1px solid #4a3f6b; color: #a08ec0;
+      padding: 10px 20px; border-radius: 6px; cursor: pointer;
+      font-family: Georgia, serif; transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #2e2a4a; }
+
+    /* READ */
+    #read-page .story-header { border-bottom: 1px solid #2e2a4a; padding-bottom: 24px; margin-bottom: 32px; }
+    #read-page h2 { font-size: 2rem; color: #c8a96e; margin-bottom: 8px; }
+    #read-page .read-meta { color: #6a5f7a; font-size: 0.88rem; display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; }
+    #read-page .story-body { font-size: 1.05rem; line-height: 1.9; white-space: pre-wrap; max-width: 720px; }
+    .read-actions { margin-bottom: 20px; display: flex; gap: 10px; }
+    .read-pill-section { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .read-pill-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .read-pill-label { font-size: 0.78rem; color: #5a4f6a; min-width: 72px; }
+    #read-synopsis { margin-top: 14px; color: #9a8f9a; font-style: italic; font-size: 0.95rem; line-height: 1.7; }
+
+    /* DROPDOWN SUGGESTIONS */
+    .datalist-wrapper { position: relative; }
+    .suggestion-list {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 100;
+      background: #1e2a45; border: 1px solid #4a3f6b; border-radius: 6px;
+      max-height: 180px; overflow-y: auto; display: none;
+    }
+    .suggestion-list.open { display: block; }
+    .suggestion-item {
+      padding: 8px 14px; cursor: pointer; font-size: 0.9rem; color: #c8a96e;
+      transition: background 0.15s;
+    }
+    .suggestion-item:hover, .suggestion-item.active { background: #2e2a4a; }
+
+    #toast {
+      position: fixed; bottom: 28px; right: 28px; background: #2e7d52; color: #fff;
+      padding: 12px 22px; border-radius: 6px; font-size: 0.9rem;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    #toast.show { opacity: 1; }
+    #toast.error { background: #7d2e2e; }
+
+    .word-count { font-size: 0.8rem; color: #6a5f7a; text-align: right; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #16213e; }
+    ::-webkit-scrollbar-thumb { background: #4a3f6b; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>✦ My Story Archive</h1>
+  <nav>
+    <button class="active" onclick="showPage('browse')">📚 Browse</button>
+    <button onclick="showPage('write')">✍️ New Story</button>
+  </nav>
+</header>
+
+<!-- BROWSE -->
+<div id="browse-page" class="page active">
+  <input type="text" id="search-bar" placeholder="Cari judul, fandom, karakter, tag..." oninput="renderCards()"/>
+  <div class="filters">
+    <select id="filter-fandom" onchange="renderCards()"><option value="">All Fandoms</option></select>
+    <select id="filter-genre" onchange="renderCards()">
+      <option value="">All Genres</option>
+      <option>Romance</option><option>Fantasy</option><option>Drama</option>
+      <option>Mystery</option><option>Slice of Life</option>
+      <option>Sci-Fi</option><option>Horror</option><option>Original</option><option>Other</option>
+    </select>
+    <select id="filter-char" onchange="renderCards()"><option value="">All Characters</option></select>
+    <select id="filter-sort" onchange="renderCards()">
+      <option value="newest">Terbaru</option>
+      <option value="oldest">Terlama</option>
+      <option value="alpha">A–Z</option>
+    </select>
+  </div>
+  <div class="story-grid" id="story-grid"></div>
+</div>
+
+<!-- WRITE / EDIT -->
+<div id="write-page" class="page">
+  <h2 style="color:#c8a96e; margin-bottom:24px;" id="write-title">✍️ Write New Story</h2>
+  <input type="hidden" id="edit-id"/>
+  <div class="write-form">
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Judul *</label>
+        <input type="text" id="story-title" placeholder="Judul cerita..."/>
+      </div>
+      <!-- FANDOM with dropdown -->
+      <div class="form-group">
+        <label>Fandom / Universe</label>
+        <div class="datalist-wrapper">
+          <input type="text" id="story-fandom" placeholder="cth: Veilward, Original..."
+            autocomplete="off"
+            oninput="showSuggestions('story-fandom','dl-fandom',getAllFandoms)"
+            onfocus="showSuggestions('story-fandom','dl-fandom',getAllFandoms)"
+            onkeydown="handleSuggestionKey(event,'dl-fandom','story-fandom')"/>
+          <div class="suggestion-list" id="dl-fandom"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Genre</label>
+        <select id="story-genre">
+          <option>Romance</option><option>Fantasy</option><option>Drama</option>
+          <option>Mystery</option><option>Slice of Life</option>
+          <option>Sci-Fi</option><option>Horror</option><option>Original</option><option>Other</option>
+        </select>
+      </div>
+      <!-- CHARACTERS multi-tag input -->
+      <div class="form-group" style="flex:2">
+        <label>👤 Karakter</label>
+        <div class="tag-input-wrapper" id="chars-wrapper" onclick="focusTagInput('char-input')">
+          <input type="text" class="tag-input-inner" id="char-input"
+            placeholder="Ketik nama, Enter/koma untuk tambah..."
+            autocomplete="off"
+            oninput="showTagSuggestions('char-input','dl-chars',getAllChars)"
+            onfocus="showTagSuggestions('char-input','dl-chars',getAllChars)"
+            onkeydown="handleTagKey(event,'char-input','chars-wrapper','dl-chars','chip-char',getAllChars)"/>
+        </div>
+        <div class="datalist-wrapper" style="position:relative;">
+          <div class="suggestion-list" id="dl-chars"></div>
+        </div>
+        <div class="tag-hint">Tekan Enter atau koma (,) untuk menambah karakter</div>
+      </div>
+    </div>
+
+    <!-- TAGS multi-tag input -->
+    <div class="form-group">
+      <label>🏷 Tags</label>
+      <div class="tag-input-wrapper" id="tags-wrapper" onclick="focusTagInput('tag-input')">
+        <input type="text" class="tag-input-inner" id="tag-input"
+          placeholder="Ketik tag, Enter/koma untuk tambah..."
+          autocomplete="off"
+          oninput="showTagSuggestions('tag-input','dl-tags',getAllTags)"
+          onfocus="showTagSuggestions('tag-input','dl-tags',getAllTags)"
+          onkeydown="handleTagKey(event,'tag-input','tags-wrapper','dl-tags','chip-tag',getAllTags)"/>
+      </div>
+      <div class="datalist-wrapper" style="position:relative;">
+        <div class="suggestion-list" id="dl-tags"></div>
+      </div>
+      <div class="tag-hint">Tekan Enter atau koma (,) untuk menambah tag</div>
+    </div>
+
+    <div class="form-group">
+      <label>Sinopsis</label>
+      <textarea id="story-synopsis" rows="3" placeholder="Ceritakan sedikit tentang kisah ini..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Isi Cerita *</label>
+      <textarea id="story-content" placeholder="Mulai menulis di sini..." oninput="updateWordCount()"></textarea>
+      <div class="word-count" id="word-count">0 words</div>
+    </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <button class="btn-primary" onclick="saveStory()">💾 Save</button>
+      <button class="btn-secondary" onclick="cancelEdit()">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- READ -->
+<div id="read-page" class="page">
+  <div class="read-actions">
+    <button class="btn-secondary" onclick="showPage('browse')">← Back</button>
+    <button class="btn-secondary" onclick="editCurrentStory()">✏️ Edit</button>
+    <button class="btn-secondary" onclick="deleteCurrentStory()" style="border-color:#6b2a2a;color:#d47070;">🗑 Delete</button>
+  </div>
+  <div class="story-header">
+    <h2 id="read-title"></h2>
+    <div class="read-meta">
+      <span id="read-fandom"></span><span id="read-genre"></span>
+      <span id="read-date"></span><span id="read-words"></span>
+    </div>
+    <div class="read-pill-section" id="read-pills"></div>
+    <div id="read-synopsis"></div>
+  </div>
+  <div class="story-body" id="read-body"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'myStoryArchive_v1';
+  function getStories() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  function saveStories(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+  let currentReadId = null;
+
+  // ── COLLECTED VALUES ──
+  function getAllFandoms() {
+    return [...new Set(getStories().map(s => s.fandom).filter(Boolean))].sort();
+  }
+  function getAllChars() {
+    return [...new Set(getStories().flatMap(s => s.chars || []))].sort();
+  }
+  function getAllTags() {
+    return [...new Set(getStories().flatMap(s => s.tags || []))].sort();
+  }
+
+  // ── SUGGESTION DROPDOWN (single input like fandom) ──
+  function showSuggestions(inputId, listId, getOptions) {
+    const input = document.getElementById(inputId);
+    const list  = document.getElementById(listId);
+    const query = input.value.toLowerCase().trim();
+    const opts  = getOptions().filter(o => o.toLowerCase().includes(query));
+
+    if (!opts.length) { list.classList.remove('open'); return; }
+
+    list.innerHTML = opts.map((o,i) =>
+      `<div class="suggestion-item" data-val="${esc(o)}"
+        onmousedown="pickSuggestion('${inputId}','${listId}','${esc(o)}')">${esc(o)}</div>`
+    ).join('');
+    list.classList.add('open');
+  }
+
+  function pickSuggestion(inputId, listId, val) {
+    document.getElementById(inputId).value = val;
+    document.getElementById(listId).classList.remove('open');
+  }
+
+  function handleSuggestionKey(e, listId, inputId) {
+    const list  = document.getElementById(listId);
+    const items = list.querySelectorAll('.suggestion-item');
+    const active = list.querySelector('.suggestion-item.active');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = active ? active.nextElementSibling : items[0];
+      if (active) active.classList.remove('active');
+      if (next) next.classList.add('active');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = active ? active.previousElementSibling : items[items.length-1];
+      if (active) active.classList.remove('active');
+      if (prev) prev.classList.add('active');
+    } else if (e.key === 'Enter' && active) {
+      e.preventDefault();
+      pickSuggestion(inputId, listId, active.dataset.val);
+    } else if (e.key === 'Escape') {
+      list.classList.remove('open');
+    }
+  }
+
+  // ── TAG CHIP SYSTEM ──
+  // chips[wrapperId] = Set of strings
+  const chips = {};
+
+  function getChips(wrapperId) {
+    if (!chips[wrapperId]) chips[wrapperId] = new Set();
+    return chips[wrapperId];
+  }
+
+  function focusTagInput(inputId) {
+    document.getElementById(inputId).focus();
+  }
+
+  function addChip(wrapperId, inputId, chipClass, value) {
+    const v = value.trim();
+    if (!v) return;
+    const set = getChips(wrapperId);
+    if (set.has(v)) return; // no duplicate
+    set.add(v);
+
+    const wrapper = document.getElementById(wrapperId);
+    const input   = document.getElementById(inputId);
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip ' + chipClass;
+    chip.dataset.val = v;
+    chip.innerHTML = `${esc(v)} <button type="button" onclick="removeChip('${wrapperId}','${inputId}','${esc(v)}',this.parentElement)">✕</button>`;
+    wrapper.insertBefore(chip, input);
+  }
+
+  function removeChip(wrapperId, inputId, val, el) {
+    getChips(wrapperId).delete(val);
+    el.remove();
+    document.getElementById(inputId).focus();
+  }
+
+  function getChipValues(wrapperId) {
+    return [...getChips(wrapperId)];
+  }
+
+  function clearChips(wrapperId) {
+    chips[wrapperId] = new Set();
+    const wrapper = document.getElementById(wrapperId);
+    wrapper.querySelectorAll('.tag-chip').forEach(c => c.remove());
+  }
+
+  // ── TAG SUGGESTION DROPDOWN ──
+  function showTagSuggestions(inputId, listId, getOptions) {
+    const input   = document.getElementById(inputId);
+    const list    = document.getElementById(listId);
+    const query   = input.value.toLowerCase().trim();
+    const wrapper = input.closest('.form-group').querySelector('.tag-input-wrapper');
+    const wId     = wrapper ? wrapper.id : '';
+    const already = wId ? getChips(wId) : new Set();
+
+    const opts = getOptions()
+      .filter(o => !already.has(o) && (query === '' || o.toLowerCase().includes(query)));
+
+    if (!opts.length) { list.classList.remove('open'); return; }
+
+    const chipClass = listId === 'dl-chars' ? 'chip-char' : 'chip-tag';
+    const wrapId    = listId === 'dl-chars' ? 'chars-wrapper' : 'tags-wrapper';
+
+    list.innerHTML = opts.map(o =>
+      `<div class="suggestion-item" data-val="${esc(o)}"
+        onmousedown="pickTagSuggestion('${inputId}','${listId}','${wrapId}','${chipClass}','${esc(o)}')">${esc(o)}</div>`
+    ).join('');
+    list.classList.add('open');
+  }
+
+  function pickTagSuggestion(inputId, listId, wrapperId, chipClass, val) {
+    addChip(wrapperId, inputId, chipClass, val);
+    document.getElementById(inputId).value = '';
+    document.getElementById(listId).classList.remove('open');
+    document.getElementById(inputId).focus();
+    showTagSuggestions(inputId, listId,
+      listId === 'dl-chars' ? getAllChars : getAllTags);
+  }
+
+  function handleTagKey(e, inputId, wrapperId, listId, chipClass, getOptions) {
+    const input  = document.getElementById(inputId);
+    const list   = document.getElementById(listId);
+    const active = list.querySelector('.suggestion-item.active');
+    const items  = list.querySelectorAll('.suggestion-item');
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = active ? active.nextElementSibling : items[0];
+      if (active) active.classList.remove('active');
+      if (next) next.classList.add('active');
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = active ? active.previousElementSibling : items[items.length-1];
+      if (active) active.classList.remove('active');
+      if (prev) prev.classList.add('active');
+      return;
+    }
+    if (e.key === 'Escape') { list.classList.remove('open'); return; }
+
+    if ((e.key === 'Enter' || e.key === ',')) {
+      e.preventDefault();
+      if (active) {
+        pickTagSuggestion(inputId, listId, wrapperId, chipClass, active.dataset.val);
+      } else {
+        const val = input.value.replace(/,/g,'').trim();
+        if (val) { addChip(wrapperId, inputId, chipClass, val); input.value = ''; }
+        list.classList.remove('open');
+      }
+      return;
+    }
+
+    // Backspace on empty => remove last chip
+    if (e.key === 'Backspace' && input.value === '') {
+      const set = getChips(wrapperId);
+      const last = [...set].pop();
+      if (last) {
+        set.delete(last);
+        const wrapper = document.getElementById(wrapperId);
+        const lastChip = [...wrapper.querySelectorAll('.tag-chip')].pop();
+        if (lastChip) lastChip.remove();
+      }
+    }
+  }
+
+  // close dropdowns on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.datalist-wrapper') && !e.target.closest('.tag-input-wrapper')) {
+      document.querySelectorAll('.suggestion-list').forEach(l => l.classList.remove('open'));
+    }
+  });
+
+  // ── NAV ──
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(name + '-page').classList.add('active');
+    if (name === 'browse') {
+      renderFandomFilter(); renderCharFilter(); renderCards();
+      document.querySelectorAll('header nav button')[0].classList.add('active');
+    }
+    if (name === 'write') {
+      document.querySelectorAll('header nav button')[1].classList.add('active');
+    }
+  }
+
+  // ── WORD COUNT ──
+  function updateWordCount() {
+    const t = document.getElementById('story-content').value.trim();
+    document.getElementById('word-count').textContent =
+      (t ? t.split(/\s+/).length : 0).toLocaleString('id') + ' words';
+  }
+
+  // ── SAVE ──
+  function saveStory() {
+    const title   = document.getElementById('story-title').value.trim();
+    const content = document.getElementById('story-content').value.trim();
+    if (!title)   { showToast('Judul tidak boleh kosong!', true); return; }
+    if (!content) { showToast('Isi cerita tidak boleh kosong!', true); return; }
+
+    // flush any pending tag-input text
+    ['char-input','tag-input'].forEach(id => {
+      const el = document.getElementById(id);
+      const val = el.value.trim();
+      if (val) {
+        const isChar = id === 'char-input';
+        addChip(isChar?'chars-wrapper':'tags-wrapper', id, isChar?'chip-char':'chip-tag', val);
+        el.value = '';
+      }
+    });
+
+    const stories = getStories();
+    const editId  = document.getElementById('edit-id').value;
+    const now     = new Date().toISOString();
+
+    const story = {
+      id:        editId || Date.now().toString(),
+      title,
+      fandom:    document.getElementById('story-fandom').value.trim() || 'Original',
+      genre:     document.getElementById('story-genre').value,
+      chars:     getChipValues('chars-wrapper'),
+      tags:      getChipValues('tags-wrapper'),
+      synopsis:  document.getElementById('story-synopsis').value.trim(),
+      content,
+      wordCount: content.split(/\s+/).length,
+      createdAt: editId ? (stories.find(s=>s.id===editId)?.createdAt || now) : now,
+      updatedAt: now,
+    };
+
+    if (editId) {
+      const idx = stories.findIndex(s => s.id === editId);
+      if (idx !== -1) stories[idx] = story; else stories.unshift(story);
+    } else {
+      stories.unshift(story);
+    }
+
+    saveStories(stories);
+    clearForm();
+    showToast(editId ? 'Cerita berhasil diperbarui! ✨' : 'Cerita tersimpan! ✨');
+    showPage('browse');
+  }
+
+  // ── CLEAR FORM ──
+  function clearForm() {
+    ['story-title','story-fandom','story-synopsis','story-content','edit-id','char-input','tag-input']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('story-genre').value = 'Romance';
+    document.getElementById('write-title').textContent = '✍️ Write New Story';
+    document.getElementById('word-count').textContent = '0 words';
+    clearChips('chars-wrapper');
+    clearChips('tags-wrapper');
+    document.querySelectorAll('.suggestion-list').forEach(l => l.classList.remove('open'));
+  }
+
+  function cancelEdit() { clearForm(); showPage('browse'); }
+
+  // ── RENDER CARDS ──
+  function renderCards() {
+    const query  = document.getElementById('search-bar').value.toLowerCase();
+    const fandom = document.getElementById('filter-fandom').value;
+    const genre  = document.getElementById('filter-genre').value;
+    const char   = document.getElementById('filter-char').value;
+    const sort   = document.getElementById('filter-sort').value;
+    let stories  = getStories();
+
+    if (query) {
+      stories = stories.filter(s =>
+        s.title.toLowerCase().includes(query) ||
+        s.fandom.toLowerCase().includes(query) ||
+        (s.chars||[]).some(c => c.toLowerCase().includes(query)) ||
+        (s.tags||[]).some(t => t.toLowerCase().includes(query)) ||
+        (s.synopsis||'').toLowerCase().includes(query)
+      );
+    }
+    if (fandom) stories = stories.filter(s => s.fandom === fandom);
+    if (genre)  stories = stories.filter(s => s.genre  === genre);
+    if (char)   stories = stories.filter(s => (s.chars||[]).includes(char));
+
+    if (sort==='newest') stories.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    if (sort==='oldest') stories.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+    if (sort==='alpha')  stories.sort((a,b)=>a.title.localeCompare(b.title));
+
+    const grid = document.getElementById('story-grid');
+    if (!stories.length) {
+      grid.innerHTML = '<div class="empty-state"><span>📖</span>Belum ada cerita ditemukan.</div>';
+      return;
+    }
+    grid.innerHTML = stories.map(s => {
+      const chars = (s.chars||[]).slice(0,4).map(c=>`<span class="pill pill-char">👤 ${esc(c)}</span>`).join('');
+      const extra = (s.chars||[]).length>4 ? `<span class="pill pill-char">+${s.chars.length-4}</span>` : '';
+      return `
+      <div class="story-card" onclick="readStory('${s.id}')">
+        <div class="card-actions">
+          <button onclick="event.stopPropagation();editStory('${s.id}')">✏️</button>
+          <button class="btn-del" onclick="event.stopPropagation();deleteStory('${s.id}')">🗑</button>
+        </div>
+        <div class="tag-row">
+          <span class="pill pill-fandom">${esc(s.fandom)}</span>
+          <span class="pill pill-fandom">${esc(s.genre)}</span>
+        </div>
+        <h3>${esc(s.title)}</h3>
+        ${chars||extra ? `<div class="tag-row">${chars}${extra}</div>` : ''}
+        <p>${esc(s.synopsis||s.content)}</p>
+        <div class="meta"><span>${formatDate(s.createdAt)}</span><span>${(s.wordCount||0).toLocaleString('id')} words</span></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── FILTERS ──
+  function renderFandomFilter() {
+    const fandoms = getAllFandoms();
+    const sel = document.getElementById('filter-fandom');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Fandoms</option>' +
+      fandoms.map(f=>`<option ${f===cur?'selected':''}>${esc(f)}</option>`).join('');
+  }
+  function renderCharFilter() {
+    const chars = getAllChars();
+    const sel = document.getElementById('filter-char');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Characters</option>' +
+      chars.map(c=>`<option ${c===cur?'selected':''}>${esc(c)}</option>`).join('');
+  }
+
+  // ── READ ──
+  function readStory(id) {
+    const s = getStories().find(x=>x.id===id);
+    if (!s) return;
+    currentReadId = id;
+    document.getElementById('read-title').textContent  = s.title;
+    document.getElementById('read-fandom').textContent = '📌 ' + s.fandom;
+    document.getElementById('read-genre').textContent  = '🏷 ' + s.genre;
+    document.getElementById('read-date').textContent   = '📅 ' + formatDate(s.createdAt);
+    document.getElementById('read-words').textContent  = '📝 ' + (s.wordCount||0).toLocaleString('id') + ' words';
+    document.getElementById('read-synopsis').textContent = s.synopsis||'';
+    document.getElementById('read-body').textContent   = s.content;
+    let html = '';
+    if ((s.chars||[]).length) html += `<div class="read-pill-row"><span class="read-pill-label">👤 Karakter</span>${s.chars.map(c=>`<span class="pill pill-char">${esc(c)}</span>`).join('')}</div>`;
+    if ((s.tags||[]).length)  html += `<div class="read-pill-row"><span class="read-pill-label">🏷 Tags</span>${s.tags.map(t=>`<span class="pill pill-tag">${esc(t)}</span>`).join('')}</div>`;
+    document.getElementById('read-pills').innerHTML = html;
+    showPage('read');
+  }
+
+  // ── EDIT ──
+  function editStory(id) {
+    const s = getStories().find(x=>x.id===id);
+    if (!s) return;
+    clearForm();
+    document.getElementById('edit-id').value        = s.id;
+    document.getElementById('story-title').value    = s.title;
+    document.getElementById('story-fandom').value   = s.fandom;
+    document.getElementById('story-genre').value    = s.genre;
+    document.getElementById('story-synopsis').value = s.synopsis||'';
+    document.getElementById('story-content').value  = s.content;
+    document.getElementById('write-title').textContent = '✏️ Edit Cerita';
+    // restore chips
+    (s.chars||[]).forEach(c => addChip('chars-wrapper','char-input','chip-char',c));
+    (s.tags||[]).forEach(t  => addChip('tags-wrapper','tag-input','chip-tag',t));
+    updateWordCount();
+    showPage('write');
+  }
+
+  function editCurrentStory() { if (currentReadId) editStory(currentReadId); }
+
+  // ── DELETE ──
+  function deleteStory(id) {
+    if (!confirm('Yakin mau hapus cerita ini?')) return;
+    saveStories(getStories().filter(s=>s.id!==id));
+    showToast('Cerita dihapus.');
+    renderCards();
+  }
+  function deleteCurrentStory() {
+    if (!currentReadId) return;
+    if (!confirm('Yakin mau hapus cerita ini?')) return;
+    saveStories(getStories().filter(s=>s.id!==currentReadId));
+    currentReadId = null;
+    showToast('Cerita dihapus.');
+    showPage('browse');
+  }
+
+  // ── HELPERS ──
+  function esc(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+  }
+  function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'show'+(isError?' error':'');
+    setTimeout(()=>t.className='',2500);
+  }
+
+  // ── INIT ──
+  renderFandomFilter(); renderCharFilter(); renderCards();
+</script>
+</body>
+</html>

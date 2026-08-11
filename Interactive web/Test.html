@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elemental Character Hub</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 10px #00ced1;
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        input, select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 5px #00ced1;
+        }
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .character-card {
+            background-color: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .character-card:hover {
+            transform: scale(1.05);
+        }
+        .card-header {
+            padding: 15px;
+            text-align: center;
+            color: #fff;
+        }
+        .card-body {
+            padding: 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            background-color: #333;
+        }
+        .card-body.show {
+            max-height: 500px;
+        }
+        .hidden {
+            display: none;
+        }
+        p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        /* Element-specific styles and animations */
+        .Fire { border: 2px solid #ff4500; }
+        .Fire .card-header { background: linear-gradient(45deg, #ff4500, #ffd700); }
+        .Fire:hover { animation: fireGlow 1.5s infinite; }
+        @keyframes fireGlow {
+            0% { box-shadow: 0 0 10px #ff4500; }
+            50% { box-shadow: 0 0 20px #ffd700; }
+            100% { box-shadow: 0 0 10px #ff4500; }
+        }
+        .Sound { border: 2px solid #800080; }
+        .Sound .card-header { background: linear-gradient(45deg, #800080, #dda0dd); }
+        .Sound:hover { animation: soundWave 1s infinite; }
+        @keyframes soundWave {
+            0% { box-shadow: 0 0 5px #800080; }
+            50% { box-shadow: 0 0 15px #dda0dd; }
+            100% { box-shadow: 0 0 5px #800080; }
+        }
+        .Earth { border: 2px solid #8b4513; }
+        .Earth .card-header { background: linear-gradient(45deg, #8b4513, #228b22); }
+        .Earth:hover { animation: earthRumble 2s infinite; }
+        @keyframes earthRumble {
+            0% { transform: translateY(0); }
+            10% { transform: translateY(-2px); }
+            20% { transform: translateY(2px); }
+            30% { transform: translateY(0); }
+        }
+        .Wind { border: 2px solid #87ceeb; }
+        .Wind .card-header { background: linear-gradient(45deg, #87ceeb, #d3d3d3); }
+        .Wind:hover { animation: windGust 1.5s infinite; }
+        @keyframes windGust {
+            0% { box-shadow: 0 0 10px #87ceeb; }
+            50% { box-shadow: 0 0 20px #d3d3d3; }
+            100% { box-shadow: 0 0 10px #87ceeb; }
+        }
+        .Light { border: 2px solid #ffd700; }
+        .Light .card-header { background: linear-gradient(45deg, #ffd700, #fffacd); }
+        .Light:hover { animation: lightFlash 1s infinite; }
+        @keyframes lightFlash {
+            0% { box-shadow: 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 20px #fffacd; }
+            100% { box-shadow: 0 0 10px #ffd700; }
+        }
+        .Nature { border: 2px solid #228b22; }
+        .Nature .card-header { background: linear-gradient(45deg, #228b22, #98fb98); }
+        .Nature:hover { animation: natureGrow 2s infinite; }
+        @keyframes natureGrow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        .Water { border: 2px solid #1e90ff; }
+        .Water .card-header { background: linear-gradient(45deg, #1e90ff, #00ced1); }
+        .Water:hover { animation: waterRipple 1.5s infinite; }
+        @keyframes waterRipple {
+            0% { box-shadow: 0 0 10px #1e90ff; }
+            50% { box-shadow: 0 0 20px #00ced1; }
+            100% { box-shadow: 0 0 10px #1e90ff; }
+        }
+        .Venom { border: 2px solid #32cd32; }
+        .Venom .card-header { background: linear-gradient(45deg, #32cd32, #9400d3); }
+        .Venom:hover { animation: venomDrip 1.5s infinite; }
+        @keyframes venomDrip {
+            0% { box-shadow: 0 0 10px #32cd32; }
+            50% { box-shadow: 0 0 20px #9400d3; }
+            100% { box-shadow: 0 0 10px #32cd32; }
+        }
+        .Lightning { border: 2px solid #00b7eb; }
+        .Lightning .card-header { background: linear-gradient(45deg, #00b7eb, #ffff00); }
+        .Lightning:hover { animation: lightningFlash 0.5s infinite; }
+        @keyframes lightningFlash {
+            0% { box-shadow: 0 0 10px #00b7eb; }
+            50% { box-shadow: 0 0 20px #ffff00; }
+            100% { box-shadow: 0 0 10px #00b7eb; }
+        }
+        .Ice { border: 2px solid #add8e6; }
+        .Ice .card-header { background: linear-gradient(45deg, #add8e6, #f0f8ff); }
+        .Ice:hover { animation: iceFrost 1.5s infinite; }
+        @keyframes iceFrost {
+            0% { box-shadow: 0 0 10px #add8e6; }
+            50% { box-shadow: 0 0 20px #f0f8ff; }
+            100% { box-shadow: 0 0 10px #add8e6; }
+        }
+        .Crystal { border: 2px solid #e6e6fa; }
+        .Crystal .card-header { background: linear-gradient(45deg, #e6e6fa, #ff69b4); }
+        .Crystal:hover { animation: crystalShine 1.5s infinite; }
+        @keyframes crystalShine {
+            0% { box-shadow: 0 0 10px #e6e6fa; }
+            50% { box-shadow: 0 0 20px #ff69b4; }
+            100% { box-shadow: 0 0 10px #e6e6fa; }
+        }
+        .Metal { border: 2px solid #4682b4; }
+        .Metal .card-header { background: linear-gradient(45deg, #4682b4, #c0c0c0); }
+        .Metal:hover { animation: metalClank 2s infinite; }
+        @keyframes metalClank {
+            0% { transform: translateX(0); }
+            10% { transform: translateX(-2px); }
+            20% { transform: translateX(2px); }
+            30% { transform: translateX(0); }
+        }
+        .Shadow { border: 2px solid #483d8b; }
+        .Shadow .card-header { background: linear-gradient(45deg, #483d8b, #000000); }
+        .Shadow:hover { animation: shadowFade 1.5s infinite; }
+        @keyframes shadowFade {
+            0% { box-shadow: 0 0 10px #483d8b; }
+            50% { box-shadow: 0 0 20px #000000; }
+            100% { box-shadow: 0 0 10px #483d8b; }
+        }
+        @media (max-width: 600px) {
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Elemental Character Hub</h1>
+        <div class="controls">
+            <input type="text" id="search-bar" placeholder="Search by name or personality..." aria-label="Search characters">
+            <select id="element-filter" aria-label="Filter by element">
+                <option value="all">All Elements</option>
+                <option value="Fire">Fire</option>
+                <option value="Sound">Sound</option>
+                <option value="Earth">Earth</option>
+                <option value="Wind">Wind</option>
+                <option value="Light">Light</option>
+                <option value="Nature">Nature</option>
+                <option value="Water">Water</option>
+                <option value="Venom">Venom</option>
+                <option value="Lightning">Lightning</option>
+                <option value="Ice">Ice</option>
+                <option value="Crystal">Crystal</option>
+                <option value="Metal">Metal</option>
+                <option value="Shadow">Shadow</option>
+            </select>
+        </div>
+        <div class="character-grid">
+            <!-- Liam Reed -->
+            <div class="character-card Fire" data-element="Fire" data-personality="Adventurous, charismatic, impulsive, optimistic">
+                <div class="card-header">
+                    <h2>Liam Reed</h2>
+                    <p>Bold Adventurer</p>
+                    <p>Element: Fire</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Silver hair, short mullet, blue eyes, 171 cm</p>
+                    <p><strong>Personality:</strong> Adventurous, charismatic, energetic, open-minded, optimistic, impulsive, reckless, attention-seeking, inconsiderate, restless, spontaneous, curious, persuasive, high-energy, non-traditional</p>
+                    <p><strong>Abilities:</strong> Fire – Classic and chaotic. Burn it all or warm your hands.</p>
+                    <p><strong>Relationships:</strong> Best friends: Rowan, Jae; Close: Ben, Jae; Friendly: All; Rival: Merula; Secret soft spot: Ben; Romantic: Rowan or Merula</p>
+                    <p><strong>Story Arc:</strong> Learns that chasing thrills means nothing without people worth coming home to.</p>
+                </div>
+            </div>
+            <!-- Rowan Khanna -->
+            <div class="character-card Sound" data-element="Sound" data-personality="Strategic, quick-thinking, over-analytical, stubborn">
+                <div class="card-header">
+                    <h2>Rowan Khanna</h2>
+                    <p>Strategic Planner</p>
+                    <p>Element: Sound</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Short black hair, blue eyes, glasses, 170 cm</p>
+                    <p><strong>Personality:</strong> Strategic, quick-thinking, independent, practical, dependable, over-analytical, stubborn, detached, cynical, manipulative, calculating, observant, critical, focused, private</p>
+                    <p><strong>Abilities:</strong> Sound – Sonic booms, vibration waves, shatter eardrums and glass.</p>
+                    <p><strong>Relationships:</strong> Best friends: Liam, Ben; Close: Ben, Jae; Friendly: All; Rival: Talbott, Liam; Secret soft spot: Jae; Romantic: Liam or Ben</p>
+                    <p><strong>Story Arc:</strong> Realizes not every problem can be solved with logic—some require heart.</p>
+                </div>
+            </div>
+            <!-- Ben Copper -->
+            <div class="character-card Earth" data-element="Earth" data-personality="Insightful, detail-oriented, cautious, overthinker">
+                <div class="card-header">
+                    <h2>Ben Copper</h2>
+                    <p>Analytical Observer</p>
+                    <p>Element: Earth</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Short sandy blonde hair, brown eyes, 169 cm</p>
+                    <p><strong>Personality:</strong> Insightful, detail-oriented, observant, cautious, thorough, overthinker, paranoid, pessimistic, distrustful, aloof, methodical, calculating, skeptical, reticent, introspective</p>
+                    <p><strong>Abilities:</strong> Earth – Grounded power. Boulders, armor, and earthquakes included.</p>
+                    <p><strong>Relationships:</strong> Best friends: Rowan; Close: Liam, Jae, Barnaby; Friendly: All; Romantic: Rowan or Barnaby</p>
+                    <p><strong>Story Arc:</strong> Learns to trust their instincts and that not every decision needs to be perfect to be right.</p>
+                </div>
+            </div>
+            <!-- Jae Kim -->
+            <div class="character-card Wind" data-element="Wind" data-personality="Humorous, charismatic, sarcastic, impulsive">
+                <div class="card-header">
+                    <h2>Jae Kim</h2>
+                    <p>Mood Lightener</p>
+                    <p>Element: Wind</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Messy short black hair, brown eyes, 171 cm</p>
+                    <p><strong>Personality:</strong> Humorous, charismatic, optimistic, playful, supportive, sarcastic, dismissive, distraction-prone, insensitive, avoidant, light-hearted, impulsive, entertaining, jittery, unpredictable</p>
+                    <p><strong>Abilities:</strong> Wind – Slicing gusts, flight, and casually flipping tables.</p>
+                    <p><strong>Relationships:</strong> Best friends: Liam; Close: Ben, Rowan, Penny; Friendly: All; Rival: Merula; Secret soft spot: Ben; Romantic: Liam or Merula</p>
+                    <p><strong>Story Arc:</strong> Discovers that being the funny one doesn’t mean hiding their real feelings forever.</p>
+                </div>
+            </div>
+            <!-- Penny Haywood -->
+            <div class="character-card Light" data-element="Light" data-personality="Charming, sociable, empathetic, manipulative">
+                <div class="card-header">
+                    <h2>Penny Haywood</h2>
+                    <p>Social Butterfly</p>
+                    <p>Element: Light</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Blonde hair in braids, blue eyes, friendly appearance, 165 cm</p>
+                    <p><strong>Personality:</strong> Charming, sociable, empathetic, persuasive, supportive, manipulative, superficial, over-involved, shallow, opportunistic, collaborative, energetic, flirtatious, resourceful, adaptable</p>
+                    <p><strong>Abilities:</strong> Light – Blinding flashes, lasers, illusions, and holy judgment vibes.</p>
+                    <p><strong>Relationships:</strong> Best friends: Mayumi; Close: Chiara, Jae, Barnaby; Friendly: All; Romantic: Mayumi or Barnaby</p>
+                    <p><strong>Story Arc:</strong> Learns that while they bring everyone together, they also deserve deep connections of their own.</p>
+                </div>
+            </div>
+            <!-- Mayumi Sasaki -->
+            <div class="character-card Nature" data-element="Nature" data-personality="Thoughtful, insightful, introverted, timid">
+                <div class="card-header">
+                    <h2>Mayumi Sasaki</h2>
+                    <p>Quiet Strategist</p>
+                    <p>Element: Nature</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Long straight grey hair, blue eyes, 165 cm</p>
+                    <p><strong>Personality:</strong> Thoughtful, insightful, brave, humble, loyal, introverted, hesitant, overly self-critical, easily overlooked, timid, observant, reserved, silent strategist, unassuming, sensitive</p>
+                    <p><strong>Abilities:</strong> Nature – Vines, thorns, and plants that aren’t vegan-friendly.</p>
+                    <p><strong>Relationships:</strong> Best friends: Penny, Chiara; Close: Barnaby; Friendly: All; Romantic: Penny or Chiara</p>
+                    <p><strong>Story Arc:</strong> Finds their voice and realizes that quiet strength can still change everything.</p>
+                </div>
+            </div>
+            <!-- Chiara Lobosca -->
+            <div class="character-card Water" data-element="Water" data-personality="Compassionate, patient, overbearing, sensitive">
+                <div class="card-header">
+                    <h2>Chiara Lobosca</h2>
+                    <p>Empathetic Healer</p>
+                    <p>Element: Water</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> White hair in bob, yellow eyes, 163 cm</p>
+                    <p><strong>Personality:</strong> Compassionate, patient, generous, understanding, caring, overbearing, self-sacrificing, overly emotional, easily drained, codependent, sensitive, protective, dependable, soft-spoken, warm-hearted</p>
+                    <p><strong>Abilities:</strong> Water – Gentle healing to crushing tidal waves.</p>
+                    <p><strong>Relationships:</strong> Best friends: Mayumi; Close: Penny, Barnaby; Friendly: All; Romantic: Mayumi</p>
+                    <p><strong>Story Arc:</strong> Learns to care for themselves as deeply as they care for everyone else.</p>
+                </div>
+            </div>
+            <!-- Tulip Karasu -->
+            <div class="character-card Venom" data-element="Venom" data-personality="Independent, bold, rebellious, arrogant">
+                <div class="card-header">
+                    <h2>Tulip Karasu</h2>
+                    <p>Rule Breaker</p>
+                    <p>Element: Venom</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Red hair in shoulder-length butterfly cut, hazel eyes, 170 cm</p>
+                    <p><strong>Personality:</strong> Independent, bold, innovative, confident, visionary, rebellious, defiant, arrogant, disrespectful, impulsive, unconventional, provocative, headstrong, disruptive, uncompromising</p>
+                    <p><strong>Abilities:</strong> Venom – Venomous strikes, acidic blasts, toxic clouds.</p>
+                    <p><strong>Relationships:</strong> Best friends: Hayami; Close: Andre, Talbott; Friendly: All; Rival: Hayami; Fallout: Merula; Dislike: Merula; Sibling: Andre; Romantic: Hayami</p>
+                    <p><strong>Story Arc:</strong> Discovers true freedom is knowing what’s worth fighting for.</p>
+                </div>
+            </div>
+            <!-- Hayami Amamiya -->
+            <div class="character-card Lightning" data-element="Lightning" data-personality="Loyal, honest, cynical, sarcastic">
+                <div class="card-header">
+                    <h2>Hayami Amamiya</h2>
+                    <p>Skeptical Protector</p>
+                    <p>Element: Lightning</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Short blonde hair in wolf cut, green eyes, 173 cm</p>
+                    <p><strong>Personality:</strong> Loyal, honest, protective, caring, insightful, cynical, sarcastic, distrustful, jaded, blunt, independent, reserved, stubborn, analytical, witty</p>
+                    <p><strong>Abilities:</strong> Lightning – Fast, furious, shocking, and destructive.</p>
+                    <p><strong>Relationships:</strong> Best friends: Tulip; Close: Talbott, Andre; Friendly: All; Rival: Tulip; Dislike: Merula; Sibling: Talbott; Romantic: Tulip</p>
+                    <p><strong>Story Arc:</strong> Discovers that hope isn’t weakness—letting people in doesn’t always lead to disappointment.</p>
+                </div>
+            </div>
+            <!-- Talbott Winger -->
+            <div class="character-card Ice" data-element="Ice" data-personality="Observant, intuitive, secretive, cautious">
+                <div class="card-header">
+                    <h2>Talbott Winger</h2>
+                    <p>Quiet Observer</p>
+                    <p>Element: Ice</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Slick back brown short hair, brown eyes, 175 cm</p>
+                    <p><strong>Personality:</strong> Observant, intuitive, perceptive, wise, empathetic, secretive, distrustful, detached, overly cautious, overthinking, introverted, mysterious, subtle, discreet, reserved</p>
+                    <p><strong>Abilities:</strong> Ice – Cool under pressure. Freeze enemies, slide into battle.</p>
+                    <p><strong>Relationships:</strong> Best friends: Andre; Close: Hayami, Tulip; Friendly: All; Rival: Rowan; Dislike: Merula; Sibling: Hayami; Romantic: Andre</p>
+                    <p><strong>Story Arc:</strong> Learns that watching from the sidelines isn’t truly living—sometimes they need to step into the spotlight.</p>
+                </div>
+            </div>
+            <!-- Andre Egwu -->
+            <div class="character-card Crystal" data-element="Crystal" data-personality="Romantic, compassionate, naïve, idealistic">
+                <div class="card-header">
+                    <h2>Andre Egwu</h2>
+                    <p>Romantic Dreamer</p>
+                    <p>Element: Crystal</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Buzz cut, brown eyes, well-dressed, fashion-conscious, 171 cm</p>
+                    <p><strong>Personality:</strong> Romantic, compassionate, inspiring, optimistic, caring, naïve, over-emotional, unrealistic, idealistic to a fault, overly sentimental, dreamy, hopeful, soft-spoken, sensitive, impressionable</p>
+                    <p><strong>Abilities:</strong> Crystal – Shards, prisms, armor, reflect magic.</p>
+                    <p><strong>Relationships:</strong> Best friends: Talbott; Close: Tulip, Hayami; Friendly: All; Sibling: Tulip; Romantic: Talbott</p>
+                    <p><strong>Story Arc:</strong> Realizes that love is built through vulnerability, truth, and imperfection.</p>
+                </div>
+            </div>
+            <!-- Barnaby Lee -->
+            <div class="character-card Metal" data-element="Metal" data-personality="Diplomatic, empathetic, passive, sensitive">
+                <div class="card-header">
+                    <h2>Barnaby Lee</h2>
+                    <p>Peacekeeper</p>
+                    <p>Element: Metal</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Short brown hair, green eyes, tall, muscular, intimidating but friendly face, 176 cm</p>
+                    <p><strong>Personality:</strong> Mediator, diplomatic, empathetic, patient, harmonious, avoidant, people-pleasing, passive, indecisive, conflict-averse, tactful, calm, adaptable, non-confrontational, sensitive to others’ needs</p>
+                    <p><strong>Abilities:</strong> Metal – Control steel, bend weapons, become a walking tank.</p>
+                    <p><strong>Relationships:</strong> Best friends: Mayumi; Close: Ben, Chiara, Penny; Friendly: All; Romantic: Ben or Penny</p>
+                    <p><strong>Story Arc:</strong> Discovers that keeping the peace is noble, but their own voice and needs matter too.</p>
+                </div>
+            </div>
+            <!-- Merula Snyde -->
+            <div class="character-card Shadow" data-element="Shadow" data-personality="Spontaneous, creative, erratic, prideful">
+                <div class="card-header">
+                    <h2>Merula Snyde</h2>
+                    <p>Unpredictable Antagonist</p>
+                    <p>Element: Shadow</p>
+                </div>
+                <div class="card-body">
+                    <p><strong>Appearance:</strong> Brown hair in short layered cut, brown eyes, 167 cm</p>
+                    <p><strong>Personality:</strong> Spontaneous, creative, fun-loving, unique, adventurous, erratic, unreliable, impulsive, prideful, disruptive, unconventional, unpredictable, whimsical, playful, unfocused</p>
+                    <p><strong>Abilities:</strong> Shadow – Cloak in fear, teleport through shadows, or brood.</p>
+                    <p><strong>Relationships:</strong> Close: Jae; Rival: Everyone; Fallout: Tulip; Secret soft spot: Liam; Romantic: Liam or Jae</p>
+                    <p><strong>Story Arc:</strong> Chaos without purpose is empty—finds meaning in standing with the group.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle card details on click
+        document.querySelectorAll('.character-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const body = card.querySelector('.card-body');
+                body.classList.toggle('show');
+            });
+        });
+
+        // Filter characters by element
+        document.getElementById('element-filter').addEventListener('change', () => {
+            const filter = document.getElementById('element-filter').value;
+            document.querySelectorAll('.character-card').forEach(card => {
+                if (filter === 'all' || card.dataset.element === filter) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+
+        // Search characters by name or personality
+        document.getElementById('search-bar').addEventListener('input', () => {
+            const search = document.getElementById('search-bar').value.toLowerCase();
+            document.querySelectorAll('.character-card').forEach(card => {
+                const name = card.querySelector('h2').textContent.toLowerCase();
+                const personality = card.dataset.personality.toLowerCase();
+                if (name.includes(search) || personality.includes(search)) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+
+        // Keyboard accessibility for card toggle
+        document.querySelectorAll('.character-card').forEach(card => {
+            card.setAttribute('tabindex', '0');
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.querySelector('.card-body').classList.toggle('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
