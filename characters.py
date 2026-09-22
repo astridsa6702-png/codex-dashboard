@@ -23,7 +23,7 @@ CHARACTERS = {
             }
         }
     },
-    "Aria 'Aya' Typhoon": {
+    "Maia Park": {
         "affinity": "Phoenix",
         "color": "#F59E0B",  # Flame Gold
         "archetype": "Rebirth & Undying Will",
@@ -47,7 +47,7 @@ CHARACTERS = {
             }
         }
     },
-    "Rima Rain": {
+    "Paula Lopez": {
         "affinity": "Kitsune",
         "color": "#3B82F6",  # Sapphire Blue
         "archetype": "Wisdom, Illusion & Spiritual Mastery",
@@ -71,7 +71,7 @@ CHARACTERS = {
             }
         }
     },
-    "Valeria 'Val' Bolt": {
+    "Shaye Kaylen": {
         "affinity": "Unicorn",
         "color": "#E0E7FF",  # Crystal White
         "archetype": "Purity, Truth & Sacred Guardian",
@@ -95,7 +95,7 @@ CHARACTERS = {
             }
         }
     },
-    "Putri Storm": {
+    "Chiyo Funai": {
         "affinity": "Hydra",
         "color": "#059669",  # Deep Serpent Green
         "archetype": "Adaptation & Relentless Survival",
@@ -119,7 +119,7 @@ CHARACTERS = {
             }
         }
     },
-    "Tulip Karasu": {
+    "Shizuka Aikawa": {
         "affinity": "Cerberus",
         "color": "#DC2626",  # Crimson Red
         "archetype": "Boundary Guardian & Eternal Vigilance",
@@ -167,7 +167,7 @@ CHARACTERS = {
             }
         }
     },
-    "Penny Haywood": {
+    "Shiina Ishioka": {
         "affinity": "Pegasus",
         "color": "#38BDF8",  # Sky Blue & Starlight
         "archetype": "Freedom, Hope & Boundless Possibility",
@@ -191,7 +191,7 @@ CHARACTERS = {
             }
         }
     },
-    "Chiara Lobosca": {
+    "Hibiki Masami": {
         "affinity": "Kirin",
         "color": "#FBBF24",  # Divine Gold
         "archetype": "Divine Peace, Harmony & Purification",
@@ -215,7 +215,7 @@ CHARACTERS = {
             }
         }
     },
-    "Erika Thunder": {
+    "Mica Dwyer": {
         "affinity": "Sphinx",
         "color": "#A16207",  # Ancient Sandstone Gold
         "archetype": "Ancient Judgment & Forgotten Knowledge",
